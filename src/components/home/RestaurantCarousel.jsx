@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
-import RestaurantCard from "./RestuarantCard"
+import { useEffect, useMemo, useState } from "react";
+import RestaurantCard from "./RestuarantCard";
 import RestaurantCardSkeleton from "../common/RestaurantCardSkeleton";
 
-const RestaurantCarousel = () => {
+const RestaurantCarousel = ({ seachQuery = "" }) => {
   const [restaurantList, setRestaurantList] = useState([]);
   const [loadingRestaurants, setLoadingRestaurants] = useState(true);
+
+  console.log(seachQuery,'sq')
 
   useEffect(() => {
     fetch(
@@ -19,7 +21,7 @@ const RestaurantCarousel = () => {
         const restaurants =
           restaurantCard?.card?.card?.gridElements?.infoWithStyle
             ?.restaurants || [];
-        
+
         const restaurantCardList = restaurants.map((r) => ({
           id: r.info.id,
           name: r.info.name,
@@ -33,7 +35,7 @@ const RestaurantCarousel = () => {
           area: r.info.areaName,
           link: r.cta?.link,
         }));
-        
+
         return restaurantCardList;
       })
       .then((restaurantCardList) => {
@@ -45,6 +47,18 @@ const RestaurantCarousel = () => {
         setLoadingRestaurants(false);
       });
   }, []);
+
+  const searchedRestaurents = useMemo(()=> { 
+    if(!seachQuery.trim()) {
+      return restaurantList
+    }
+    const query = seachQuery.toLocaleLowerCase();
+
+    return restaurantList.filter(restaurant => {
+      return restaurant.name.toLowerCase().includes(query);
+    })
+
+  },[restaurantList, seachQuery])
 
   return (
     <div>
@@ -65,7 +79,7 @@ const RestaurantCarousel = () => {
           </div>
         ) : restaurantList.length > 0 ? (
           <div className="flex items-stretch p-4 gap-6">
-            {restaurantList.map((restaurant) => (
+            {searchedRestaurents.map((restaurant) => (
               <RestaurantCard key={restaurant.id} restaurant={restaurant} />
             ))}
           </div>
