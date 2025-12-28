@@ -1,30 +1,15 @@
-import Layout from "../src/components/layout/Layout"
-import Home from "../src/pages/Home"
+import Layout from "../src/components/layout/Layout";
+import Home from "../src/pages/Home";
 
+import { AuthProvider } from "./contexts/AuthContext";
 
 const App = () => {
   return (
-    <Layout>
-      <Home/>
-    </Layout>
-  )
-}
-export default App
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    <AuthProvider>
+      <Layout>
+        <Home />
+      </Layout>
+    </AuthProvider>
+  );
+};
+export default App;

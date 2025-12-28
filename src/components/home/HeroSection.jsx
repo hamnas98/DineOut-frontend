@@ -1,4 +1,20 @@
-const HeroSection = () => {
+import { useState } from 'react'
+
+function HeroSection({ onSearch }) {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    onSearch(searchQuery);
+    setSearchQuery('')
+  }
+
+  const handleInputChange = (e) => {
+    const value = e.target.value
+    setSearchQuery(value)
+    onSearch(value)
+  }
+
   return (
     <div className="py-10">
       <div className="sm:p-4">
@@ -19,8 +35,10 @@ const HeroSection = () => {
               Find your favorite restaurants, cuisines, and dishes.
             </h2>
           </div>
+
           {/* Search Bar */}
           <form 
+            onSubmit={handleSearch}
             className="flex flex-col min-w-40 h-14 w-full max-w-[580px] sm:h-16"
           >
             <div className="flex w-full flex-1 items-stretch rounded-lg h-full shadow-lg">
@@ -28,13 +46,34 @@ const HeroSection = () => {
               <div className="text-slate-500 dark:text-slate-400 flex border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark items-center justify-center pl-[15px] rounded-l-lg border-r-0">
                 <span className="material-symbols-outlined" aria-hidden="true">search</span>
               </div>
+
               {/* Input Field */}
               <input 
                 type="text"
+                value={searchQuery}
+                onChange={handleInputChange}
                 className="flex w-full min-w-0 flex-1 text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark h-full placeholder:text-slate-500 dark:placeholder:text-slate-400 px-[15px] border-r-0 border-l-0 text-sm font-normal leading-normal sm:text-base" 
                 placeholder="Search for restaurant, cuisine or a dish"
                 aria-label="Search for restaurant, cuisine or a dish"
               />
+
+              {/* Clear Button (appears when typing) */}
+              {searchQuery && (
+                <div className="flex items-center justify-center border-l-0 border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark px-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('')
+                      onSearch('')
+                    }}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    aria-label="Clear search"
+                  >
+                    <span className="material-symbols-outlined text-xl">close</span>
+                  </button>
+                </div>
+              )}
+
               {/* Search Button */}
               <div className="flex items-center justify-center rounded-r-lg border-l-0 border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark pr-[7px]">
                 <button 
