@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import RestaurantCard from "./RestuarantCard";
 import RestaurantCardSkeleton from "../common/RestaurantCardSkeleton";
+import SortDropdown from "./SortDropdown";
+import FilterSidebar from "./FilterSidebar";
+import FilterBadge from "./FilterBadge";
 
 const RestaurantCarousel = ({ seachQuery = "" }) => {
   const [restaurantList, setRestaurantList] = useState([]);
   const [loadingRestaurants, setLoadingRestaurants] = useState(true);
-
-  console.log(seachQuery,'sq')
+  const [sortBy, setSortBy] = useState("relevance");
+  console.log(sortBy)
 
   useEffect(() => {
     fetch(
@@ -48,17 +51,35 @@ const RestaurantCarousel = ({ seachQuery = "" }) => {
       });
   }, []);
 
-  const searchedRestaurents = useMemo(()=> { 
-    if(!seachQuery.trim()) {
-      return restaurantList
+  const searchedRestaurents = useMemo(() => {
+    if (!seachQuery.trim()) {
+      return restaurantList;
     }
     const query = seachQuery.toLocaleLowerCase();
 
-    return restaurantList.filter(restaurant => {
+    return restaurantList.filter((restaurant) => {
       return restaurant.name.toLowerCase().includes(query);
-    })
+    });
+  }, [restaurantList, seachQuery]);
 
-  },[restaurantList, seachQuery])
+  const sortedRestaurants = useMemo(() => {
+    const sorted = [...searchedRestaurents]
+
+    switch (sortBy) {
+      case "rating":
+        return sorted.sort((a, b) => b.rating - a.rating);
+
+      case "deliveryTime":
+        return sorted.sort((a, b) => a.deliveryMinutes - b.deliveryMinutes);
+
+      case "name":
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+
+      case "relevance":
+      default:
+        return sorted;
+    }
+  }, [searchedRestaurents, sortBy]);
 
   return (
     <div>
@@ -68,6 +89,12 @@ const RestaurantCarousel = ({ seachQuery = "" }) => {
           Top-rated restaurants near you
         </h2>
       </div>
+      {!loadingRestaurants && restaurantList.length > 0 && (
+        <div className="flex items-center gap-3">
+          <FilterSidebar></FilterSidebar>
+          <SortDropdown sortBy={sortBy} onSortChange={setSortBy} />
+        </div>
+      )}
 
       {/* Scrollable Container */}
       <div className="flex overflow-x-auto scrollbar-hide">
@@ -79,7 +106,7 @@ const RestaurantCarousel = ({ seachQuery = "" }) => {
           </div>
         ) : restaurantList.length > 0 ? (
           <div className="flex items-stretch p-4 gap-6">
-            {searchedRestaurents.map((restaurant) => (
+            {sortedRestaurants.map((restaurant) => (
               <RestaurantCard key={restaurant.id} restaurant={restaurant} />
             ))}
           </div>
