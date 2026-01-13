@@ -4,16 +4,25 @@ import CuisineGrid from "../components/home/CusineGrid";
 import { useState } from "react";
 
 const Home = () => {
-  const [seachQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [restaurants, setRestaurants] = useState([]);
 
-  function onSearch(query) {
+  const handleSearch = (query) => {
     setSearchQuery(query);
-  }
+  };
+
+  // Callback to get restaurants from RestaurantCarousel
+  const handleRestaurantsLoaded = (restaurantList) => {
+    setRestaurants(restaurantList);
+  };
 
   return (
     <>
-      <HeroSection onSearch={onSearch} />
-      <RestaurantCarousel seachQuery={seachQuery} />
+      <HeroSection onSearch={handleSearch} restaurants={restaurants} />
+      <RestaurantCarousel
+        searchQuery={searchQuery}
+        onRestaurantsLoaded={handleRestaurantsLoaded}
+      />
       <CuisineGrid />
     </>
   );
