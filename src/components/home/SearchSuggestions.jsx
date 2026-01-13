@@ -1,6 +1,10 @@
 import { useMemo } from "react";
 
-const SearchSuggestions = ({ restaurants = [], searchQuery = "", showSuggestions }) => {
+const SearchSuggestions = ({
+  restaurants = [],
+  searchQuery = "",
+  showSuggestions,
+}) => {
   const suggestions = useMemo(() => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -16,6 +20,29 @@ const SearchSuggestions = ({ restaurants = [], searchQuery = "", showSuggestions
       return [];
     }
   }, [searchQuery, restaurants]);
+
+  const highlightMatch = (text, query) => {
+    if (!query.trim()) return text;
+
+    const parts = text.split(new RegExp(`(${query})`, "gi"));
+    console.log(parts, "partsd");
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === query.toLowerCase() ? (
+            <mark
+              key={i}
+              className="bg-yellow-200 dark:bg-yellow-900/50 text-slate-900 dark:text-white font-semibold"
+            >
+              {part}
+            </mark>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </>
+    );
+  };
 
   if (!showSuggestions || suggestions.length === 0) {
     return null;
@@ -47,14 +74,14 @@ const SearchSuggestions = ({ restaurants = [], searchQuery = "", showSuggestions
           {/* Restaurant Info */}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-              {res.name}
+              {highlightMatch(res.name, searchQuery)}
             </p>
             <p className="text-xs text-slate-600 dark:text-slate-400 truncate">
-              {res.cuisines}
+              {highlightMatch(res.cuisines, searchQuery)}
             </p>
             {res.area && (
               <p className="text-xs text-slate-500 dark:text-slate-500 truncate mt-0.5">
-                📍 {res.area}
+                📍 {highlightMatch(res.area, searchQuery)}
               </p>
             )}
           </div>

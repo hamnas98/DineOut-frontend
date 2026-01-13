@@ -1,20 +1,28 @@
 import { useState, useEffect } from "react";
 import useDebounce from "../../hooks/useDebounce";
 import SearchSuggestions from "./SearchSuggestions";
+import SearchHistory from "./SearchHistory";
+import useSearchHistory from "../../hooks/useSearchHistory";
 
 function HeroSection({ onSearch, restaurants }) {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebounce(searchQuery, 300);
   const [isFocused, setIsFocused] = useState(false);
-
+  const { history, saveSearch, clearHistory, removeFromHistory } = useSearchHistory();
+ 
   useEffect(() => {
-    onSearch(debouncedQuery);
+    if (debouncedQuery.trim()) {
+      onSearch(debouncedQuery);
+    }
   }, [debouncedQuery, onSearch]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    onSearch(searchQuery);
-    setIsFocused(false);
+    if (searchQuery.trim()) {
+      onSearch(searchQuery);
+      saveSearch(searchQuery);
+      setIsFocused(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -23,12 +31,19 @@ function HeroSection({ onSearch, restaurants }) {
   };
 
   const handleClear = () => {
-    setSearchQuery("");
     onSearch("");
+    setSearchQuery("");
+    setIsFocused(false);
+  };
+
+  const handleSelectHistory = (query) => {
+    setSearchQuery(query);
+    onSearch(query);
     setIsFocused(false);
   };
 
   const showSuggestions = isFocused && searchQuery.trim().length > 0;
+  const showHistory = isFocused && searchQuery.trim().length === 0 && history.length > 0;
 
   return (
     <div className="py-10">
@@ -105,11 +120,23 @@ function HeroSection({ onSearch, restaurants }) {
             </form>
 
             {/* Search Suggestions Dropdown */}
-            <SearchSuggestions
-              restaurants={restaurants}
-              searchQuery={searchQuery}
-              showSuggestions={showSuggestions}
-            />
+            {showSuggestions && (
+              <SearchSuggestions
+                restaurants={restaurants}
+                searchQuery={searchQuery}
+                showSuggestions={showSuggestions}
+              />
+            )}
+
+            {/* Search History */}
+            {showHistory && (
+              <SearchHistory
+                history={history}
+                onSelectHistory={handleSelectHistory}
+                onClearHistory={clearHistory}
+                onRemoveItem={removeFromHistory}
+              />
+            )}
           </div>
         </div>
       </div>
