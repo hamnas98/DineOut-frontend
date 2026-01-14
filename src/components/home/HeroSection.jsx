@@ -1,26 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useDebounce from "../../hooks/useDebounce";
 import SearchSuggestions from "./SearchSuggestions";
 import SearchHistory from "./SearchHistory";
 import useSearchHistory from "../../hooks/useSearchHistory";
 
-function HeroSection({ onSearch, restaurants }) {
+
+
+function HeroSection({ onSearch, restaurants = [] }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedQuery = useDebounce(searchQuery, 300);
   const [isFocused, setIsFocused] = useState(false);
+  const debouncedQuery = useDebounce(searchQuery, 300);
+  const searchRef = useRef(null);
   const { history, saveSearch, clearHistory, removeFromHistory } = useSearchHistory();
- 
+
+  // Handle debounced search
   useEffect(() => {
-    if (debouncedQuery.trim()) {
-      onSearch(debouncedQuery);
-    }
+    onSearch(debouncedQuery);
   }, [debouncedQuery, onSearch]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setIsFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      onSearch(searchQuery);
       saveSearch(searchQuery);
+      onSearch(searchQuery);
       setIsFocused(false);
     }
   };
@@ -31,8 +44,15 @@ function HeroSection({ onSearch, restaurants }) {
   };
 
   const handleClear = () => {
-    onSearch("");
     setSearchQuery("");
+    onSearch("");
+    setIsFocused(false);
+  };
+
+  const handleSelectRestaurant = (restaurant) => {
+    setSearchQuery(restaurant.name);
+    saveSearch(restaurant.name);
+    onSearch(restaurant.name);
     setIsFocused(false);
   };
 
@@ -42,14 +62,20 @@ function HeroSection({ onSearch, restaurants }) {
     setIsFocused(false);
   };
 
+  const handleSelectSuggestion = (query) => {
+    saveSearch(query);
+    setIsFocused(false);
+  };
+
   const showSuggestions = isFocused && searchQuery.trim().length > 0;
-  const showHistory = isFocused && searchQuery.trim().length === 0 && history.length > 0;
+  const showHistory =
+    isFocused && searchQuery.trim().length === 0 && history.length > 0;
 
   return (
     <div className="py-10">
       <div className="sm:p-4">
         <div
-          className="flex min-h-[400px] sm:min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat sm:gap-8 sm:rounded-xl items-center justify-center p-4 text-center relative"
+          className="flex min-h-[400px] sm:min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat sm:gap-8 sm:rounded-xl items-center justify-center p-4 text-center"
           style={{
             backgroundImage:
               'linear-gradient(rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.5) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCveuiWdyawnDpagGc642CHS1IIe2oF6f9WcMJw2Xhng2ttJzX9YxTyP2lo0qWfLsR_VyO8cgwBJQP3H9ylUeh9f1uTvl2a6jn0vcFAIICDi8cvOkbyN0ZYm0yj1TGjl94_rAWbqDxyy2t_P8zWqbAyycTQZ02r5i39cPZ3uUT5SFy_cENZMPNAfrlfe2yJSYIuhaGmb5EmaUXUHicRCu_fgnbU_eMaahT9FsXsprP6hUDzNOLmIfm6dG2YFDIYwsfFRw5doXJwZHWL")',
@@ -68,9 +94,12 @@ function HeroSection({ onSearch, restaurants }) {
           </div>
 
           {/* Search Bar with Suggestions */}
-          <div className="relative flex flex-col min-w-40 h-14 w-full max-w-[580px] sm:h-16">
+          <div
+            ref={searchRef}
+            className="w-full max-w-[580px] relative"
+          >
             <form onSubmit={handleSearch} className="w-full">
-              <div className="flex w-full flex-1 items-stretch rounded-lg h-full shadow-lg">
+              <div className="flex w-full flex-1 items-stretch rounded-lg h-14 sm:h-16 shadow-lg">
                 {/* Search Icon */}
                 <div className="text-slate-500 dark:text-slate-400 flex border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark items-center justify-center pl-[15px] rounded-l-lg border-r-0">
                   <span className="material-symbols-outlined" aria-hidden="true">
@@ -83,11 +112,11 @@ function HeroSection({ onSearch, restaurants }) {
                   type="text"
                   value={searchQuery}
                   onFocus={() => setIsFocused(true)}
-                  onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                   onChange={handleInputChange}
                   className="flex w-full min-w-0 flex-1 text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-200 dark:border-slate-700 bg-white dark:bg-background-dark h-full placeholder:text-slate-500 dark:placeholder:text-slate-400 px-[15px] border-r-0 border-l-0 text-sm font-normal leading-normal sm:text-base"
                   placeholder="Search for restaurant, cuisine or a dish"
                   aria-label="Search for restaurant, cuisine or a dish"
+                  autoComplete="off"
                 />
 
                 {/* Clear Button */}
@@ -119,11 +148,13 @@ function HeroSection({ onSearch, restaurants }) {
               </div>
             </form>
 
-            {/* Search Suggestions Dropdown */}
+            {/* Search Suggestions */}
             {showSuggestions && (
               <SearchSuggestions
                 restaurants={restaurants}
                 searchQuery={searchQuery}
+                onSelectRestaurant={handleSelectRestaurant}
+                onSelectSuggestion={handleSelectSuggestion}
                 showSuggestions={showSuggestions}
               />
             )}

@@ -19,11 +19,8 @@ const RestaurantCarousel = ({ searchQuery = "", onRestaurantsLoaded }) => {
     fetch(
       "https://www.swiggy.com/dapi/restaurants/list/v5?lat=12.920624&lng=77.650769&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING"
     )
-      .then((res) => {
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((response) => {
-        console.log(console.log(response))
         const cards = response.data.cards;
         const restaurantCard = cards.find((card) => {
           return card?.card?.card?.gridElements?.infoWithStyle?.restaurants;
@@ -45,7 +42,6 @@ const RestaurantCarousel = ({ searchQuery = "", onRestaurantsLoaded }) => {
           area: r.info.areaName,
           link: r.cta?.link,
         }));
-        console.log(restaurantCardList);
 
         return restaurantCardList;
       })
@@ -62,7 +58,7 @@ const RestaurantCarousel = ({ searchQuery = "", onRestaurantsLoaded }) => {
         console.error("Error fetching restaurants:", error);
         setLoadingRestaurants(false);
       });
-  }, [onRestaurantsLoaded]);
+  }, []); // ✅ Empty dependency array - only fetch once on mount
 
   // Apply search filter
   const searchedRestaurants = useMemo(() => {
@@ -218,7 +214,9 @@ const RestaurantCarousel = ({ searchQuery = "", onRestaurantsLoaded }) => {
           {filters.maxDeliveryTime < 999 && (
             <FilterBadge
               label={`<${filters.maxDeliveryTime} min`}
-              onRemove={() => setFilters({ ...filters, maxDeliveryTime: 999 })}
+              onRemove={() =>
+                setFilters({ ...filters, maxDeliveryTime: 999 })
+              }
             />
           )}
         </div>

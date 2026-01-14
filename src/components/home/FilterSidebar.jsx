@@ -1,10 +1,12 @@
 import { useState } from "react";
 
-function FilterSidebar({ filters, onFilterChange, availableCuisines = [],  activeFiltersCount
-     }) {
+function FilterSidebar({
+  filters,
+  onFilterChange,
+  availableCuisines = [],
+  activeFiltersCount,
+}) {
   const [isOpen, setIsOpen] = useState(false);
-
-  console.log("ff", filters);
 
   const ratingOptions = [
     { label: "4.5+ Stars", value: 4.5 },
@@ -32,13 +34,13 @@ function FilterSidebar({ filters, onFilterChange, availableCuisines = [],  activ
     onFilterChange({ cuisines: [], minRating: 0, maxDeliveryTime: 999 });
   }
 
-    const handleCuisineToggle = (cuisine) => {
+  const handleCuisineToggle = (cuisine) => {
     const newCuisines = filters.cuisines.includes(cuisine)
-      ? filters.cuisines.filter(c => c !== cuisine)
-      : [...filters.cuisines, cuisine]
-    onFilterChange({ ...filters, cuisines: newCuisines })
-  }
- 
+      ? filters.cuisines.filter((c) => c !== cuisine)
+      : [...filters.cuisines, cuisine];
+    onFilterChange({ ...filters, cuisines: newCuisines });
+  };
+
   return (
     <>
       {/* Mobile Toggle Button */}
