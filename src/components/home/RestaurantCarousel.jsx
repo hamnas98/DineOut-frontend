@@ -4,6 +4,7 @@ import RestaurantCardSkeleton from "../common/RestaurantCardSkeleton";
 import SortDropdown from "./SortDropdown";
 import FilterSidebar from "./FilterSidebar";
 import FilterBadge from "./FilterBadge";
+import TopRestuarantCard from "./TopRestuarantCard";
 
 const RestaurantCarousel = ({ searchQuery = "", onRestaurantsLoaded }) => {
   const [restaurantList, setRestaurantList] = useState([]);
@@ -17,31 +18,51 @@ const RestaurantCarousel = ({ searchQuery = "", onRestaurantsLoaded }) => {
 
   useEffect(() => {
     fetch(
-      "https://www.swiggy.com/dapi/restaurants/list/v5?lat=12.920624&lng=77.650769&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING"
+      "https://www.swiggy.com/dapi/restaurants/list/v5?lat=12.946220755410387&lng=77.67176236957312&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING"
     )
       .then((res) => res.json())
-      .then((response) => {
-        const cards = response.data.cards;
-        const restaurantCard = cards.find((card) => {
-          return card?.card?.card?.gridElements?.infoWithStyle?.restaurants;
-        });
+      .then((jsonResponse) => {
+        const cards = jsonResponse?.data?.cards || [];
+
+        const restaurantCard = cards.find(
+          (c) => c?.card?.card?.id === "restaurant_grid_listing_v2"
+        );
         const restaurants =
           restaurantCard?.card?.card?.gridElements?.infoWithStyle
             ?.restaurants || [];
 
-        const restaurantCardList = restaurants.map((r) => ({
-          id: r.info.id,
-          name: r.info.name,
-          imageId: r.info.cloudinaryImageId,
-          cuisines: r.info.cuisines.join(", "),
-          cuisineArray: r.info.cuisines,
-          rating: r.info.avgRating,
-          costForTwo: r.info.costForTwo,
-          deliveryTime: r.info.sla?.slaString,
-          deliveryMinutes: r.info.sla?.deliveryTime,
-          area: r.info.areaName,
-          link: r.cta?.link,
-        }));
+        const restaurantCardList = restaurants.map((r) => {
+          // Extract loyalty/discount info
+          const loyaltyDiscoverPresentationInfo =
+            r.info.loyaltyDiscoverPresentationInfo;
+
+          // Build offer string
+          let offerText = null;
+          if (r.info.aggregatedDiscountInfoV3) {
+            const discountInfo = r.info.aggregatedDiscountInfoV3;
+            offerText = [discountInfo.header, discountInfo.subHeader]
+              .filter(Boolean)
+              .join(" ");
+          }
+
+          return {
+            id: r.info.id,
+            name: r.info.name,
+            imageId: r.info.cloudinaryImageId,
+            cuisines: r.info.cuisines.join(", "),
+            rating: r.info.avgRating,
+            costForTwo: r.info.costForTwo,
+            deliveryTime: r.info.sla?.slaString,
+            distance: r.info.sla?.lastMileTravelString,
+            area: r.info.areaName,
+            isOpen: r.info.isOpen,
+            discount:
+              loyaltyDiscoverPresentationInfo?.freedelMessage ||
+              "Free Delivery",
+            offer: offerText,
+            link: r.cta?.link,
+          };
+        });
 
         return restaurantCardList;
       })
@@ -214,28 +235,22 @@ const RestaurantCarousel = ({ searchQuery = "", onRestaurantsLoaded }) => {
           {filters.maxDeliveryTime < 999 && (
             <FilterBadge
               label={`<${filters.maxDeliveryTime} min`}
-              onRemove={() =>
-                setFilters({ ...filters, maxDeliveryTime: 999 })
-              }
+              onRemove={() => setFilters({ ...filters, maxDeliveryTime: 999 })}
             />
           )}
         </div>
       )}
 
       {/* Scrollable Container */}
-      <div className="flex overflow-x-auto scrollbar-hide">
+      <div className="flex overflow-x-auto scrollbar-hide gap-6 px-4 pb-4">
         {loadingRestaurants ? (
-          <div className="flex items-stretch p-4 gap-6">
-            {[...Array(4)].map((_, index) => (
-              <RestaurantCardSkeleton key={index} />
-            ))}
-          </div>
+          [...Array(4)].map((_, index) => (
+            <RestaurantCardSkeleton key={index} />
+          ))
         ) : sortedRestaurants.length > 0 ? (
-          <div className="flex items-stretch p-4 gap-6">
-            {sortedRestaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-            ))}
-          </div>
+          sortedRestaurants.map((restaurant) => (
+            <TopRestuarantCard key={restaurant.id} restaurant={restaurant} />
+          ))
         ) : (
           <div className="flex flex-col items-center justify-center p-12 text-center w-full">
             <span className="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600 mb-4">

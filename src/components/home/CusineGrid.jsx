@@ -6,6 +6,7 @@ const CuisineGrid = () => {
   const [cuisineList, setCuisineList] = useState([]);
   const [loadingCuisines, setLoadingCuisines] = useState(true);
 
+
   useEffect(() => {
     fetch(
       "https://www.swiggy.com/dapi/landing/PRE_SEARCH?lat=12.9121181&lng=77.6445548"
@@ -52,10 +53,12 @@ const CuisineGrid = () => {
 
       {/* Responsive Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4">
-        {loadingCuisines 
-          ? [...Array(6)].map((_, index) => <CuisineCardSkeleton key={index} />)
+        {loadingCuisines
+          ? [...Array(12)].map((_, index) => <div key={index}  className="flex-shrink-0 w-32"><CuisineCardSkeleton  /></div>)
           : cuisineList.map((cuisine) => (
-              <CuisineCard key={cuisine.id} cuisine={cuisine} />
+              <div key={cuisine.id} className="flex-shrink-0 w-32">
+                <CuisineCard cuisine={cuisine} />
+              </div>
             ))}
       </div>
     </div>

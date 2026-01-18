@@ -23,9 +23,9 @@ function CuisineCard({ cuisine }) {
       />
 
       {/* Cuisine Name */}
-      <p className="text-slate-800 dark:text-slate-200 text-sm font-semibold leading-normal group-hover:text-primary dark:group-hover:text-primary transition-colors">
+      {/* <p className="text-slate-800 dark:text-slate-200 text-sm font-semibold leading-normal group-hover:text-primary dark:group-hover:text-primary transition-colors">
         {name}
-      </p>
+      </p> */}
     </div>
   )
 }
