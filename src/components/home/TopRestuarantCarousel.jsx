@@ -7,6 +7,7 @@ const TopRestuarantCarousel = () => {
   const [isLoadingRestaurants, setLoadingRestaurants] = useState(true);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     fetch(
@@ -64,8 +65,33 @@ const TopRestuarantCarousel = () => {
       });
   }, []);
 
-  
- 
+  useEffect(() => {
+    checkScrollButtons();
+  }, [topRestaurantList]);
+
+  const checkScrollButtons = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  const scroll = (direction) => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 400;
+      const newScrollLeft = direction === 'left' 
+        ? scrollContainerRef.current.scrollLeft - scrollAmount
+        : scrollContainerRef.current.scrollLeft + scrollAmount;
+      
+      scrollContainerRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      });
+      
+      setTimeout(checkScrollButtons, 300);
+    }
+  };
 
   return (
     <div className="py-8">
@@ -106,6 +132,8 @@ const TopRestuarantCarousel = () => {
 
       {/* Scrollable Chains */}
       <div 
+        ref={scrollContainerRef}
+        onScroll={checkScrollButtons}
         className="flex overflow-x-auto scrollbar-hide gap-6 px-4 pb-4"
       >
         {isLoadingRestaurants
