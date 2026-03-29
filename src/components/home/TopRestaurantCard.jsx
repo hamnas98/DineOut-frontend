@@ -1,4 +1,4 @@
-const TopRestuarantCard = ({ restaurant }) => {
+const TopRestaurantCard = ({ restaurant }) => {
   const {
     name,
     imageId,
@@ -95,4 +95,4 @@ const TopRestuarantCard = ({ restaurant }) => {
   );
 };
 
-export default TopRestuarantCard;
+export default TopRestaurantCard;

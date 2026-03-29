@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import TopRestuarantCard from "./TopRestuarantCard";
+import TopRestuarantCard from "./TopRestaurantCard";
 import RestaurantCardSkeleton from "../common/RestaurantCardSkeleton";
 
 const TopRestuarantCarousel = () => {

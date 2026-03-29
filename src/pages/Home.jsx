@@ -1,5 +1,5 @@
 import HeroSection from "../components/home/HeroSection";
-import RestaurantCarousel from "../components/home/RestaurantCarousel";
+import RestaurantGrid from "../components/home/RestaurantGrid";
 import CuisineGrid from "../components/home/CusineGrid";
 
 import { useState } from "react";
@@ -24,11 +24,11 @@ const Home = () => {
       <HeroSection onSearch={handleSearch} restaurants={restaurants} />
       <PersonalizedCuisineCarousel />
       <TopRestaurantCarousel />
-      <RestaurantCarousel
+      <RestaurantGrid
         searchQuery={searchQuery}
         onRestaurantsLoaded={handleRestaurantsLoaded}
       />
-      <CuisineGrid />
+      {/* <CuisineGrid /> */}
     </>
   );
 };
