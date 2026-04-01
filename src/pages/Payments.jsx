@@ -1,14 +1,14 @@
-function Favourites() {
+function Payments() {
 	return (
 		<div>
 			<h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
-				My Favourites
+				Payment Methods
 			</h1>
 			<p className="text-slate-600 dark:text-slate-400">
-				You haven't added any favourites yet.
+				No saved payment methods yet.
 			</p>
 		</div>
 	);
 }
 
-export default Favourites;
+export default Payments;
