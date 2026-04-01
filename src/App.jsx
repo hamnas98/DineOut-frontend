@@ -18,6 +18,7 @@ import Favourites from "./pages/Favourites";
 import Addresses from "./pages/Addresses";
 import Payments from "./pages/Payments";
 import Settings from "./pages/Settings";
+import RestaurantDetail from "./pages/RestaurantDetail";
 
 const App = () => {
 	return (
@@ -30,6 +31,12 @@ const App = () => {
 						<Route path="/help" element={<Help />} />
 						<Route path="/offers" element={<Offers />} />
 						<Route path="/search" element={<Search />} />
+
+						{/* Restaurant Detail - Dynamic Route */}
+						<Route
+							path="/restaurant/:restaurantId"
+							element={<RestaurantDetail />}
+						/>
 
 						{/* ========== PROTECTED ROUTES ========== */}
 
