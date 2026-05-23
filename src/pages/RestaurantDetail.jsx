@@ -1,9 +1,38 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 const RestaurantDetail = () => {
 	const { restaurantId } = useParams();
-	console.log(restaurantId);
+
+	const LAT = "12.946220755410387";
+	const LNG = "77.67176236957312";
+	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+	useEffect(() => {
+		const fetchRestaurantDetails = async () => {
+			try {
+				// Fetch from your backend
+				const response = await fetch(
+					`${API_URL}/api/restaurant/${restaurantId}?lat=${LAT}&lng=${LNG}`,
+				);
+
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+
+				const data = await response.json();
+				console.log("Restaurant data:", data);
+
+				// Check if data is valid
+				if (!data?.data) {
+					throw new Error("Invalid data structure");
+				}
+			} catch (error) {
+				console.log(error);
+			}
+		};
+		fetchRestaurantDetails();
+	}, [restaurantId]);
+
 	return (
 		<div className="min-h-screen bg-slate-50 dark:bg-slate-900">
 			{/* Back Button */}
