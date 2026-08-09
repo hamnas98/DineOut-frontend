@@ -1,0 +1,125 @@
+{
+  "data": {
+    "cards": [
+      {
+        "card": {
+          "card": {
+            "@type": "type.googleapis.com/swiggy.presentation.food.v2.Restaurant",
+            "info": {
+              "id": "123",
+              "name": "KFC",
+              "areaName": "Bangalore",
+              "avgRating": 4.3,
+              "costForTwoMessage": "₹400 for two"
+            }
+          }
+        }
+      },
+
+      {
+        "card": {
+          "card": {
+            "@type": "type.googleapis.com/swiggy.presentation.food.v2.ItemCategory",
+            "title": "Recommended",
+            "itemCards": [
+              {
+                "card": {
+                  "info": {
+                    "id": "1",
+                    "name": "Chicken Bucket",
+                    "price": 39900,
+                    "description": "Crispy fried chicken bucket",
+                    "imageId": "food1",
+                    "isVeg": 0
+                  }
+                }
+              },
+              {
+                "card": {
+                  "info": {
+                    "id": "2",
+                    "name": "Veg Burger",
+                    "price": 14900,
+                    "description": "Delicious veg burger",
+                    "imageId": "food2",
+                    "isVeg": 1
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+
+      {
+        "card": {
+          "card": {
+            "@type": "type.googleapis.com/swiggy.presentation.food.v2.ItemCategory",
+            "title": "Burgers",
+            "itemCards": [
+              {
+                "card": {
+                  "info": {
+                    "id": "3",
+                    "name": "Zinger Burger",
+                    "price": 19900,
+                    "description": "Spicy chicken burger",
+                    "imageId": "food3",
+                    "isVeg": 0
+                  }
+                }
+              },
+              {
+                "card": {
+                  "info": {
+                    "id": "4",
+                    "name": "Cheese Veg Burger",
+                    "price": 17900,
+                    "description": "Veg burger with cheese",
+                    "imageId": "food4",
+                    "isVeg": 1
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+
+      {
+        "card": {
+          "card": {
+            "@type": "type.googleapis.com/swiggy.presentation.food.v2.ItemCategory",
+            "title": "Snacks",
+            "itemCards": [
+              {
+                "card": {
+                  "info": {
+                    "id": "5",
+                    "name": "French Fries",
+                    "price": 9900,
+                    "description": "Crispy fries",
+                    "imageId": "food5",
+                    "isVeg": 1
+                  }
+                }
+              },
+              {
+                "card": {
+                  "info": {
+                    "id": "6",
+                    "name": "Chicken Popcorn",
+                    "price": 14900,
+                    "description": "Crunchy chicken bites",
+                    "imageId": "food6",
+                    "isVeg": 0
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

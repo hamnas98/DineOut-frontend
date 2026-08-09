@@ -6,32 +6,30 @@ const RestaurantDetail = () => {
 
 	const LAT = "12.946220755410387";
 	const LNG = "77.67176236957312";
-	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 	useEffect(() => {
-		const fetchRestaurantDetails = async () => {
-			try {
-				// Fetch from your backend
-				const response = await fetch(
-					`${API_URL}/api/restaurant/${restaurantId}?lat=${LAT}&lng=${LNG}`,
-				);
+  const fetchRestaurantDetails = async () => {
+    try {
+      const response = await fetch(
+  `https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${LAT}&lng=${LNG}&restaurantId=${restaurantId}&catalog_qa=undefined&submitAction=ENTER`
+);
 
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
+console.log("MENU STATUS:", response.status);
+console.log(
+  "MENU TYPE:",
+  response.headers.get("content-type")
+);
 
-				const data = await response.json();
-				console.log("Restaurant data:", data);
+const text = await response.text();
 
-				// Check if data is valid
-				if (!data?.data) {
-					throw new Error("Invalid data structure");
-				}
-			} catch (error) {
-				console.log(error);
-			}
-		};
-		fetchRestaurantDetails();
-	}, [restaurantId]);
+console.log("MENU LENGTH:", text.length);
+console.log("MENU RESPONSE:", text.slice(0, 500));
+    } catch (error) {
+      console.error("ERROR:", error);
+    }
+  };
+
+  fetchRestaurantDetails();
+}, [restaurantId]);
 
 	return (
 		<div className="min-h-screen bg-slate-50 dark:bg-slate-900">
