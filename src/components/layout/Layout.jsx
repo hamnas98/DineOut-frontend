@@ -2,6 +2,7 @@ import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
 
 const Layout = ({ children }) => {
+
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark">
       <div className="flex h-full grow flex-col">

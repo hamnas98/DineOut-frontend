@@ -19,58 +19,65 @@ import Addresses from "./pages/Addresses";
 import Payments from "./pages/Payments";
 import Settings from "./pages/Settings";
 import RestaurantDetail from "./pages/RestaurantDetail";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 
 const App = () => {
 	return (
 		<AuthProvider>
 			<BrowserRouter>
-				<Layout>
-					<Routes>
-						{/* ========== PUBLIC ROUTES ========== */}
-						<Route path="/" element={<Home />} />
-						<Route path="/help" element={<Help />} />
-						<Route path="/offers" element={<Offers />} />
-						<Route path="/search" element={<Search />} />
+				<ErrorBoundary>
+					<Layout>
+						<Routes>
+							{/* ========== PUBLIC ROUTES ========== */}
+							<Route
+								path="/"
+								element={<Home />}
+					
+							/>
+							<Route path="/help" element={<Help />} />
+							<Route path="/offers" element={<Offers />} />
+							<Route path="/search" element={<Search />} />
 
-						{/* Restaurant Detail - Dynamic Route */}
-						<Route
-							path="/restaurant/:restaurantId"
-							element={<RestaurantDetail />}
-						/>
+							{/* Restaurant Detail - Dynamic Route */}
+							<Route
+								path="/restaurant/:restaurantId"
+								element={<RestaurantDetail />}
+							/>
 
-						{/* ========== PROTECTED ROUTES ========== */}
+							{/* ========== PROTECTED ROUTES ========== */}
 
-						{/* Single Protected Route */}
-						<Route
-							path="/cart"
-							element={
-								<ProtectedRoute>
-									<Cart />
-								</ProtectedRoute>
-							}
-						/>
+							{/* Single Protected Route */}
+							<Route
+								path="/cart"
+								element={
+									<ProtectedRoute>
+										<Cart />
+									</ProtectedRoute>
+								}
+							/>
 
-						{/* Protected Parent with Nested Routes */}
-						<Route
-							path="/my-account"
-							element={
-								<ProtectedRoute>
-									<Profile />
-								</ProtectedRoute>
-							}
-						>
-							<Route index element={<Orders />} />
-							<Route path="orders" element={<Orders />} />
-							<Route path="favourites" element={<Favourites />} />
-							<Route path="addresses" element={<Addresses />} />
-							<Route path="payments" element={<Payments />} />
-							<Route path="settings" element={<Settings />} />
-						</Route>
+							{/* Protected Parent with Nested Routes */}
+							<Route
+								path="/my-account"
+								element={
+									<ProtectedRoute>
+										<Profile />
+									</ProtectedRoute>
+								}
+							>
+								<Route index element={<Orders />} />
+								<Route path="orders" element={<Orders />} />
+								<Route path="favourites" element={<Favourites />} />
+								<Route path="addresses" element={<Addresses />} />
+								<Route path="payments" element={<Payments />} />
+								<Route path="settings" element={<Settings />} />
+							</Route>
 
-						{/* ========== 404 ========== */}
-						<Route path="*" element={<NotFound />} />
-					</Routes>
-				</Layout>
+							{/* ========== 404 ========== */}
+							<Route path="*" element={<NotFound />} />
+						</Routes>
+					</Layout>
+				</ErrorBoundary>
 			</BrowserRouter>
 		</AuthProvider>
 	);

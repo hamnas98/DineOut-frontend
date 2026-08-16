@@ -26,7 +26,6 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 	const LAT = "12.946220755410387";
 	const LNG = "77.67176236957312";
 
-	// Parse restaurant data
 	const parseRestaurantData = (restaurants) => {
 		return restaurants.map((r) => {
 			const loyaltyDiscoverPresentationInfo =
@@ -66,7 +65,8 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 		const fetchInitialRestaurants = async () => {
 			try {
 				const jsonResponse = await fetch(
-					"https://www.swiggy.com/dapi/restaurants/list/v5?lat=12.946220755410387&lng=77.67176236957312&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING",
+					// ✅ CHANGED: use proxy path instead of full swiggy.com URL
+					"/api/swiggy/dapi/restaurants/list/v5?lat=12.946220755410387&lng=77.67176236957312&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING",
 				).then((res) => res.json());
 				const cards = jsonResponse?.data?.cards || [];
 				const restaurantCard = cards.find(
@@ -110,7 +110,8 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 		console.log("📥 Loading more restaurants...");
 		try {
 			const response = await fetch(
-				"https://www.swiggy.com/dapi/restaurants/list/update",
+				// ✅ CHANGED: use proxy path
+				"/api/swiggy/dapi/restaurants/list/update",
 				{
 					method: "POST",
 					headers: {
@@ -176,6 +177,7 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 		hasMore,
 		loadingMore,
 	);
+
 	// Apply search filter
 	const searchedRestaurants = useMemo(() => {
 		if (!searchQuery.trim()) {

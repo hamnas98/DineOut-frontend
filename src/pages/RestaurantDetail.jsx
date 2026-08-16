@@ -1,367 +1,391 @@
-import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react"
+import { useParams, useNavigate, Link } from "react-router-dom"
 
 const RestaurantDetail = () => {
-	const { restaurantId } = useParams();
+  const { restaurantId } = useParams()
+  const navigate = useNavigate()
 
-	const LAT = "12.946220755410387";
-	const LNG = "77.67176236957312";
-	useEffect(() => {
-  const fetchRestaurantDetails = async () => {
-    try {
-      const response = await fetch(
-  `https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${LAT}&lng=${LNG}&restaurantId=${restaurantId}&catalog_qa=undefined&submitAction=ENTER`
-);
+  const [restaurant, setRestaurant] = useState(null)
+  const [menu, setMenu] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [activeCategory, setActiveCategory] = useState(null)
 
-console.log("MENU STATUS:", response.status);
-console.log(
-  "MENU TYPE:",
-  response.headers.get("content-type")
-);
+  const LAT = "12.946220755410387"
+  const LNG = "77.67176236957312"
 
-const text = await response.text();
+  useEffect(() => {
+    const fetchRestaurantDetails = async () => {
+      try {
+        setLoading(true)
+        setError(null)
 
-console.log("MENU LENGTH:", text.length);
-console.log("MENU RESPONSE:", text.slice(0, 500));
-    } catch (error) {
-      console.error("ERROR:", error);
+        const response = await fetch(
+          `/api/swiggy/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${LAT}&lng=${LNG}&restaurantId=${restaurantId}`
+        )
+
+        console.log("MENU STATUS:", response.status)
+        console.log("MENU TYPE:", response.headers.get("content-type"))
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data = await response.json()
+        console.log("Restaurant data:", data)
+
+        // Extract restaurant info
+        const restaurantInfo = data?.data?.cards?.find(
+          (card) =>
+            card?.card?.card?.["@type"] ===
+            "type.googleapis.com/swiggy.presentation.food.v2.Restaurant"
+        )?.card?.card?.info
+
+        if (!restaurantInfo) {
+          throw new Error("Restaurant info not found in response")
+        }
+
+        // Extract menu categories
+        const menuCards = data?.data?.cards?.find(
+          (card) => card?.groupedCard?.cardGroupMap?.REGULAR
+        )?.groupedCard?.cardGroupMap?.REGULAR?.cards
+
+        const menuCategories =
+          menuCards
+            ?.filter((card) =>
+              card?.card?.card?.["@type"]?.includes("ItemCategory")
+            )
+            .map((card) => ({
+              title: card?.card?.card?.title,
+              itemCount: card?.card?.card?.itemCards?.length || 0,
+              items:
+                card?.card?.card?.itemCards?.map((item) => ({
+                  id: item?.card?.info?.id,
+                  name: item?.card?.info?.name,
+                  price:
+                    (item?.card?.info?.price ||
+                      item?.card?.info?.defaultPrice) / 100,
+                  description: item?.card?.info?.description,
+                  imageId: item?.card?.info?.imageId,
+                  isVeg:
+                    item?.card?.info?.itemAttribute?.vegClassifier === "VEG",
+                  rating:
+                    item?.card?.info?.ratings?.aggregatedRating?.rating,
+                  ratingCount:
+                    item?.card?.info?.ratings?.aggregatedRating
+                      ?.ratingCountV2,
+                })) || [],
+            }))
+            .filter((category) => category.items.length > 0) || []
+
+        setRestaurant({
+          id: restaurantInfo?.id,
+          name: restaurantInfo?.name,
+          cuisines: restaurantInfo?.cuisines?.join(", "),
+          area: restaurantInfo?.areaName,
+          city: restaurantInfo?.city,
+          rating: restaurantInfo?.avgRating,
+          ratingCount: restaurantInfo?.totalRatingsString,
+          costForTwo: restaurantInfo?.costForTwoMessage,
+          deliveryTime: restaurantInfo?.sla?.slaString,
+          distance: restaurantInfo?.sla?.lastMileTravelString,
+          imageId: restaurantInfo?.cloudinaryImageId,
+        })
+
+        setMenu(menuCategories)
+
+        if (menuCategories.length > 0) {
+          setActiveCategory(menuCategories[0].title)
+        }
+
+        setLoading(false)
+      } catch (err) {
+        console.error("ERROR:", err)
+        setError(err.message)
+        setLoading(false)
+      }
     }
-  };
 
-  fetchRestaurantDetails();
-}, [restaurantId]);
+    fetchRestaurantDetails()
+  }, [restaurantId])
 
-	return (
-		<div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-			{/* Back Button */}
-			<div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-					<button className="flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:text-primary transition-colors">
-						<span className="material-symbols-outlined">arrow_back</span>
-						<span className="font-medium">Back</span>
-					</button>
-				</div>
-			</div>
+  const scrollToCategory = (categoryTitle) => {
+    setActiveCategory(categoryTitle)
+    const element = document.getElementById(categoryTitle)
+    if (element) {
+      const offset = 100
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.pageYOffset - offset
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" })
+    }
+  }
 
-			{/* Restaurant Header */}
-			<div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-					<div className="flex flex-col md:flex-row gap-6">
-						{/* Restaurant Image */}
-						<div
-							className="w-full md:w-48 h-48 rounded-xl bg-cover bg-center border border-slate-200 dark:border-slate-700 flex-shrink-0"
-							style={{
-								backgroundImage: `url("https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300/RX_THUMBNAIL/IMAGES/VENDOR/2024/11/7/a648a88f-4247-46cd-84a4-c13fb6ff2e7f_18976.JPG")`,
-							}}
-						/>
+  // ---------- Loading ----------
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">
+            Loading restaurant...
+          </p>
+        </div>
+      </div>
+    )
+  }
 
-						{/* Restaurant Info */}
-						<div className="flex-1">
-							<h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">
-								Nandhana Palace
-							</h1>
-							<p className="text-slate-600 dark:text-slate-400 mb-4">
-								Biryani, Andhra, South Indian, North Indian
-							</p>
+  // ---------- Error ----------
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="text-center max-w-md px-4">
+          <span className="material-symbols-outlined text-6xl text-red-500 mb-4">
+            error
+          </span>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+            Failed to load restaurant
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">{error}</p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+            >
+              Try Again
+            </button>
+            <Link
+              to="/"
+              className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+            >
+              Go Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-							{/* Stats */}
-							<div className="flex flex-wrap items-center gap-4 mb-4">
-								<div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
-									<span className="material-symbols-outlined text-green-700 dark:text-green-400 text-lg">
-										star
-									</span>
-									<span className="font-bold text-green-800 dark:text-green-400">
-										4.3
-									</span>
-									<span className="text-xs text-green-700 dark:text-green-400">
-										(38K+ ratings)
-									</span>
-								</div>
+  if (!restaurant) return null
 
-								<div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-									<span className="material-symbols-outlined text-lg">
-										schedule
-									</span>
-									<span className="text-sm font-medium">
-										30-35 mins
-									</span>
-								</div>
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      {/* Back Button */}
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:text-primary transition-colors"
+          >
+            <span className="material-symbols-outlined">arrow_back</span>
+            <span className="font-medium">Back</span>
+          </button>
+        </div>
+      </div>
 
-								<div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-									<span className="material-symbols-outlined text-lg">
-										currency_rupee
-									</span>
-									<span className="text-sm font-medium">
-										₹500 for two
-									</span>
-								</div>
-							</div>
+      {/* Restaurant Header */}
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col md:flex-row gap-6">
+            {restaurant.imageId && (
+              <div
+                className="w-full md:w-48 h-48 rounded-xl bg-cover bg-center border border-slate-200 dark:border-slate-700 flex-shrink-0"
+                style={{
+                  backgroundImage: `url("https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_300/${restaurant.imageId}")`,
+                }}
+              />
+            )}
 
-							{/* Location */}
-							<div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-								<span className="material-symbols-outlined text-lg">
-									location_on
-								</span>
-								<span className="text-sm">Marathahalli, Bangalore</span>
-								<span className="text-sm">• 4.2 km</span>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
+            <div className="flex-1">
+              <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">
+                {restaurant.name}
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400 mb-4">
+                {restaurant.cuisines}
+              </p>
 
-			{/* Menu Section */}
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				<div className="grid lg:grid-cols-[280px,1fr] gap-6">
-					{/* Category Sidebar */}
-					<aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
-						<div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-							<div className="p-4 border-b border-slate-200 dark:border-slate-700">
-								<h2 className="font-bold text-slate-900 dark:text-white">
-									Menu
-								</h2>
-							</div>
-							<nav className="p-2">
-								<button className="w-full text-left px-4 py-2 rounded-lg text-sm bg-primary/10 text-primary font-medium transition-colors">
-									Recommended (12)
-								</button>
-								<button className="w-full text-left px-4 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-									Biryani (8)
-								</button>
-								<button className="w-full text-left px-4 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-									Starters (15)
-								</button>
-								<button className="w-full text-left px-4 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-									Main Course (20)
-								</button>
-								<button className="w-full text-left px-4 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-									Desserts (6)
-								</button>
-								<button className="w-full text-left px-4 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-									Beverages (10)
-								</button>
-							</nav>
-						</div>
-					</aside>
+              <div className="flex flex-wrap items-center gap-4 mb-4">
+                {restaurant.rating && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <span className="material-symbols-outlined text-green-700 dark:text-green-400 text-lg">
+                      star
+                    </span>
+                    <span className="font-bold text-green-800 dark:text-green-400">
+                      {restaurant.rating}
+                    </span>
+                    {restaurant.ratingCount && (
+                      <span className="text-xs text-green-700 dark:text-green-400">
+                        ({restaurant.ratingCount})
+                      </span>
+                    )}
+                  </div>
+                )}
 
-					{/* Menu Items */}
-					<div className="space-y-8">
-						{/* Category: Recommended */}
-						<div id="Recommended">
-							<h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-								Recommended (12)
-							</h2>
+                {restaurant.deliveryTime && (
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                    <span className="material-symbols-outlined text-lg">
+                      schedule
+                    </span>
+                    <span className="text-sm font-medium">
+                      {restaurant.deliveryTime}
+                    </span>
+                  </div>
+                )}
 
-							<div className="space-y-4">
-								{/* Menu Item 1 - Veg */}
-								<div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
-									<div className="flex gap-4">
-										{/* Item Info */}
-										<div className="flex-1">
-											{/* Veg Indicator */}
-											<div className="mb-2">
-												<div className="inline-flex items-center justify-center w-5 h-5 border-2 border-green-600 rounded">
-													<div className="w-2 h-2 rounded-full bg-green-600" />
-												</div>
-											</div>
+                {restaurant.costForTwo && (
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                    <span className="material-symbols-outlined text-lg">
+                      currency_rupee
+                    </span>
+                    <span className="text-sm font-medium">
+                      {restaurant.costForTwo}
+                    </span>
+                  </div>
+                )}
+              </div>
 
-											<h3 className="font-bold text-slate-900 dark:text-white mb-1">
-												Paneer Butter Masala
-											</h3>
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                <span className="material-symbols-outlined text-lg">
+                  location_on
+                </span>
+                <span className="text-sm">
+                  {restaurant.area}, {restaurant.city}
+                </span>
+                {restaurant.distance && (
+                  <span className="text-sm">• {restaurant.distance}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-											<p className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-												₹280
-											</p>
+      {/* Menu Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {menu.length > 0 ? (
+          <div className="grid lg:grid-cols-[280px,1fr] gap-6">
+            {/* Category Sidebar */}
+            <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
+              <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                  <h2 className="font-bold text-slate-900 dark:text-white">
+                    Menu
+                  </h2>
+                </div>
+                <nav className="p-2">
+                  {menu.map((category) => (
+                    <button
+                      key={category.title}
+                      onClick={() => scrollToCategory(category.title)}
+                      className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                        activeCategory === category.title
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      {category.title} ({category.itemCount})
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            </aside>
 
-											<div className="flex items-center gap-1 mb-2">
-												<span className="material-symbols-outlined text-green-600 text-sm">
-													star
-												</span>
-												<span className="text-sm font-medium text-green-700 dark:text-green-400">
-													4.5
-												</span>
-												<span className="text-xs text-slate-500">
-													(234)
-												</span>
-											</div>
+            {/* Menu Items */}
+            <div className="space-y-8">
+              {menu.map((category) => (
+                <div key={category.title} id={category.title}>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                    {category.title} ({category.itemCount})
+                  </h2>
 
-											<p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
-												Rich and creamy paneer cooked in a
-												tomato-based gravy with butter and aromatic
-												spices
-											</p>
-										</div>
+                  <div className="space-y-4">
+                    {category.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4"
+                      >
+                        <div className="flex gap-4">
+                          <div className="flex-1">
+                            <div className="mb-2">
+                              <div
+                                className={`inline-flex items-center justify-center w-5 h-5 border-2 rounded ${
+                                  item.isVeg
+                                    ? "border-green-600"
+                                    : "border-red-600"
+                                }`}
+                              >
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    item.isVeg ? "bg-green-600" : "bg-red-600"
+                                  }`}
+                                />
+                              </div>
+                            </div>
 
-										{/* Item Image & Add Button */}
-										<div className="flex flex-col items-center gap-2">
-											<div
-												className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg bg-cover bg-center border border-slate-200 dark:border-slate-700"
-												style={{
-													backgroundImage: `url("https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_200/e0839ff574213e6f35b3899ebf1fc597")`,
-												}}
-											/>
-											<button className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">
-												ADD
-											</button>
-										</div>
-									</div>
-								</div>
+                            <h3 className="font-bold text-slate-900 dark:text-white mb-1">
+                              {item.name}
+                            </h3>
 
-								{/* Menu Item 2 - Non-Veg */}
-								<div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
-									<div className="flex gap-4">
-										{/* Item Info */}
-										<div className="flex-1">
-											{/* Non-Veg Indicator */}
-											<div className="mb-2">
-												<div className="inline-flex items-center justify-center w-5 h-5 border-2 border-red-600 rounded">
-													<div className="w-2 h-2 rounded-full bg-red-600" />
-												</div>
-											</div>
+                            <p className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                              ₹{item.price}
+                            </p>
 
-											<h3 className="font-bold text-slate-900 dark:text-white mb-1">
-												Chicken Biryani
-											</h3>
+                            {item.rating && (
+                              <div className="flex items-center gap-1 mb-2">
+                                <span className="material-symbols-outlined text-green-600 text-sm">
+                                  star
+                                </span>
+                                <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                                  {item.rating}
+                                </span>
+                                {item.ratingCount && (
+                                  <span className="text-xs text-slate-500">
+                                    ({item.ratingCount})
+                                  </span>
+                                )}
+                              </div>
+                            )}
 
-											<p className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-												₹350
-											</p>
+                            {item.description && (
+                              <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
 
-											<div className="flex items-center gap-1 mb-2">
-												<span className="material-symbols-outlined text-green-600 text-sm">
-													star
-												</span>
-												<span className="text-sm font-medium text-green-700 dark:text-green-400">
-													4.6
-												</span>
-												<span className="text-xs text-slate-500">
-													(1.2K)
-												</span>
-											</div>
+                          <div className="flex flex-col items-center gap-2">
+                            {item.imageId && (
+                              <div
+                                className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg bg-cover bg-center border border-slate-200 dark:border-slate-700"
+                                style={{
+                                  backgroundImage: `url("https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_200/${item.imageId}")`,
+                                }}
+                              />
+                            )}
+                            <button className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors whitespace-nowrap">
+                              ADD
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <span className="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600 mb-4">
+              restaurant_menu
+            </span>
+            <p className="text-slate-600 dark:text-slate-400">
+              No menu available for this restaurant
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
-											<p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
-												Aromatic basmati rice layered with succulent
-												chicken pieces, cooked with traditional
-												Hyderabadi spices
-											</p>
-										</div>
-
-										{/* Item Image & Add Button */}
-										<div className="flex flex-col items-center gap-2">
-											<div
-												className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg bg-cover bg-center border border-slate-200 dark:border-slate-700"
-												style={{
-													backgroundImage: `url("https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_200/vkhcohhmqfczycw9vip1")`,
-												}}
-											/>
-											<button className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">
-												ADD
-											</button>
-										</div>
-									</div>
-								</div>
-
-								{/* Menu Item 3 - No Image */}
-								<div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
-									<div className="flex gap-4">
-										{/* Item Info */}
-										<div className="flex-1">
-											{/* Veg Indicator */}
-											<div className="mb-2">
-												<div className="inline-flex items-center justify-center w-5 h-5 border-2 border-green-600 rounded">
-													<div className="w-2 h-2 rounded-full bg-green-600" />
-												</div>
-											</div>
-
-											<h3 className="font-bold text-slate-900 dark:text-white mb-1">
-												Dal Tadka
-											</h3>
-
-											<p className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-												₹180
-											</p>
-
-											<p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
-												Yellow lentils tempered with ghee, cumin,
-												garlic and aromatic spices
-											</p>
-										</div>
-
-										{/* Add Button Only */}
-										<div className="flex flex-col items-center gap-2">
-											<button className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">
-												ADD
-											</button>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						{/* Category: Biryani */}
-						<div id="Biryani">
-							<h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-								Biryani (8)
-							</h2>
-
-							<div className="space-y-4">
-								{/* Menu Item */}
-								<div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
-									<div className="flex gap-4">
-										<div className="flex-1">
-											<div className="mb-2">
-												<div className="inline-flex items-center justify-center w-5 h-5 border-2 border-red-600 rounded">
-													<div className="w-2 h-2 rounded-full bg-red-600" />
-												</div>
-											</div>
-
-											<h3 className="font-bold text-slate-900 dark:text-white mb-1">
-												Mutton Biryani
-											</h3>
-
-											<p className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-												₹450
-											</p>
-
-											<div className="flex items-center gap-1 mb-2">
-												<span className="material-symbols-outlined text-green-600 text-sm">
-													star
-												</span>
-												<span className="text-sm font-medium text-green-700 dark:text-green-400">
-													4.7
-												</span>
-												<span className="text-xs text-slate-500">
-													(890)
-												</span>
-											</div>
-
-											<p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
-												Tender mutton pieces marinated and
-												slow-cooked with fragrant basmati rice and
-												traditional spices
-											</p>
-										</div>
-
-										<div className="flex flex-col items-center gap-2">
-											<div
-												className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg bg-cover bg-center border border-slate-200 dark:border-slate-700"
-												style={{
-													backgroundImage: `url("https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_200/biryani")`,
-												}}
-											/>
-											<button className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">
-												ADD
-											</button>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
-};
-
-export default RestaurantDetail;
+export default RestaurantDetail
