@@ -6,6 +6,10 @@ import FilterSidebar from "./FilterSidebar";
 import FilterBadge from "./FilterBadge";
 import TopRestaurantCard from "./TopRestaurantCard";
 import useInfiniteScroll from "../../hooks/useInfiniteScroll";
+import {
+	INITIAL_RESTAURANT_API,
+	MORE_RESTAURANT_API,
+} from "../../utils/constants";
 
 const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 	const [restaurantList, setRestaurantList] = useState([]);
@@ -66,7 +70,7 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 			try {
 				const jsonResponse = await fetch(
 					// ✅ CHANGED: use proxy path instead of full swiggy.com URL
-					"/api/swiggy/dapi/restaurants/list/v5?lat=12.946220755410387&lng=77.67176236957312&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING",
+					INITIAL_RESTAURANT_API,
 				).then((res) => res.json());
 				const cards = jsonResponse?.data?.cards || [];
 				const restaurantCard = cards.find(
@@ -109,30 +113,26 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 		setLoadingMore(true);
 		console.log("📥 Loading more restaurants...");
 		try {
-			const response = await fetch(
-				// ✅ CHANGED: use proxy path
-				"/api/swiggy/dapi/restaurants/list/update",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						lat: parseFloat(LAT),
-						lng: parseFloat(LNG),
-						nextOffset: pageOffset.nextOffset,
-						widgetOffset: pageOffset.widgetOffset || {},
-						filters: {},
-						seoParams: {
-							seoUrl: "https://www.swiggy.com/",
-							pageType: "FOOD_HOMEPAGE",
-							apiName: "FoodHomePage",
-						},
-						page_type: "DESKTOP_WEB_LISTING",
-						_csrf: csrfToken || "",
-					}),
+			const response = await fetch(MORE_RESTAURANT_API, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
 				},
-			);
+				body: JSON.stringify({
+					lat: parseFloat(LAT),
+					lng: parseFloat(LNG),
+					nextOffset: pageOffset.nextOffset,
+					widgetOffset: pageOffset.widgetOffset || {},
+					filters: {},
+					seoParams: {
+						seoUrl: "https://www.swiggy.com/",
+						pageType: "FOOD_HOMEPAGE",
+						apiName: "FoodHomePage",
+					},
+					page_type: "DESKTOP_WEB_LISTING",
+					_csrf: csrfToken || "",
+				}),
+			});
 			const jsonResponse = await response.json();
 			const cards = jsonResponse?.data?.cards || [];
 			const restaurantCard = cards.find(
