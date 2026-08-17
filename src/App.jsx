@@ -20,6 +20,7 @@ import Payments from "./pages/Payments";
 import Settings from "./pages/Settings";
 import RestaurantDetail from "./pages/RestaurantDetail";
 import ErrorBoundary from "./components/common/ErrorBoundary";
+import About from "./pages/About";
 
 const App = () => {
 	return (
@@ -37,6 +38,7 @@ const App = () => {
 							<Route path="/help" element={<Help />} />
 							<Route path="/offers" element={<Offers />} />
 							<Route path="/search" element={<Search />} />
+							<Route path="/about" element ={<About/>}/>
 
 							{/* Restaurant Detail - Dynamic Route */}
 							<Route

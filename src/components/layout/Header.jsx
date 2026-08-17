@@ -63,6 +63,15 @@ function Header() {
 
 				{/* Offers */}
 				<NavLink
+					to="/about"
+					className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary dark:hover:text-primary transition-colors relative"
+					href="#about"
+				>
+					<span className="hidden sm:inline">About</span>
+				</NavLink>
+
+				{/* Offers */}
+				<NavLink
 					to="/offers"
 					className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary dark:hover:text-primary transition-colors relative"
 					href="#offers"
