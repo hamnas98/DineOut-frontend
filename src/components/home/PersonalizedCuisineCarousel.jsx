@@ -1,83 +1,17 @@
-import { useEffect, useState, useRef } from "react";
 import CuisineCard from "./CusineCard";
 import CuisineCardSkeleton from "../common/CuisineCardSkeleton";
+import useCuisineList from "../../hooks/useCuisineList";
+import useScrollButtons from "../../hooks/useScrollButtons";
 
 const PersonalizedCuisineCarousel = ({ userName = "Guest" }) => {
-	const [cuisineList, setCuisineList] = useState([]);
-	const [loadingCuisines, setLoadingCuisines] = useState(true);
-	const [canScrollLeft, setCanScrollLeft] = useState(false);
-	const [canScrollRight, setCanScrollRight] = useState(true);
-	const scrollContainerRef = useRef(null);
-
-	useEffect(() => {
-		fetch(
-			// ✅ CHANGED: use proxy path instead of full swiggy.com URL
-			"/api/swiggy/dapi/restaurants/list/v5?lat=12.920624&lng=77.650769&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING",
-		)
-			.then((res) => res.json())
-			.then((json) => {
-				const cards = json?.data?.cards || [];
-				const cuisineCard = cards.find(
-					(c) => c?.card?.card?.id === "whats_on_your_mind",
-				);
-				const cuisines =
-					cuisineCard?.card?.card?.gridElements?.infoWithStyle?.info || [];
-
-				const cuisineCardList = cuisines.map((cuisine) => {
-					function getCuisineName(link) {
-						const match = link?.match(/query=([^&]+)/);
-						return match ? decodeURIComponent(match[1]) : "";
-					}
-
-					return {
-						id: cuisine.id,
-						name: getCuisineName(cuisine.action?.link),
-						imageId: cuisine.imageId,
-						link: cuisine.action?.link,
-					};
-				});
-
-				return cuisineCardList;
-			})
-			.then((cuisineCardList) => {
-				setCuisineList(cuisineCardList);
-				setLoadingCuisines(false);
-			})
-			.catch((error) => {
-				console.error("Error fetching personalized cuisine:", error);
-				setLoadingCuisines(false);
-			});
-	}, []);
-
-	useEffect(() => {
-		checkScrollButtons();
-	}, [cuisineList]);
-
-	const checkScrollButtons = () => {
-		if (scrollContainerRef.current) {
-			const { scrollLeft, scrollWidth, clientWidth } =
-				scrollContainerRef.current;
-			setCanScrollLeft(scrollLeft > 0);
-			setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-		}
-	};
-
-	const scroll = (direction) => {
-		if (scrollContainerRef.current) {
-			const scrollAmount = 400;
-			const newScrollLeft =
-				direction === "left"
-					? scrollContainerRef.current.scrollLeft - scrollAmount
-					: scrollContainerRef.current.scrollLeft + scrollAmount;
-
-			scrollContainerRef.current.scrollTo({
-				left: newScrollLeft,
-				behavior: "smooth",
-			});
-
-			setTimeout(checkScrollButtons, 300);
-		}
-	};
+	const { cuisineList, loading } = useCuisineList();
+	const {
+		scrollContainerRef,
+		canScrollLeft,
+		canScrollRight,
+		scroll,
+		checkScrollButtons,
+	} = useScrollButtons([cuisineList]);
 
 	return (
 		<div className="relative py-8">
@@ -124,7 +58,7 @@ const PersonalizedCuisineCarousel = ({ userName = "Guest" }) => {
 				onScroll={checkScrollButtons}
 				className="flex overflow-x-auto scrollbar-hide gap-8 px-4 pb-4"
 			>
-				{loadingCuisines
+				{loading
 					? [...Array(7)].map((_, index) => (
 							<div key={index} className="flex-shrink-0 w-32">
 								<CuisineCardSkeleton />

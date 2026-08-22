@@ -7,14 +7,15 @@ const TopRestaurantImageUrl =
 const LAT = "12.946220755410387";
 const LNG = "77.67176236957312";
 
-const MENU_API =
-	`/api/swiggy/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${LAT}&lng=${LNG}&restaurantId=`;
+const MENU_API = `/api/swiggy/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=${LAT}&lng=${LNG}&restaurantId=`;
 
-const INITIAL_RESTAURANT_API =
-	`/api/swiggy/dapi/restaurants/list/v5?lat=${LAT}&lng=${LNG}&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING`;
+const INITIAL_RESTAURANT_API = `/api/swiggy/dapi/restaurants/list/v5?lat=${LAT}&lng=${LNG}&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING`;
 
-const MORE_RESTAURANT_API =
-	"/api/swiggy/dapi/restaurants/list/update";
+const MORE_RESTAURANT_API = "/api/swiggy/dapi/restaurants/list/update";
+
+const CUISINE_API = `/api/swiggy/dapi/restaurants/list/v5?lat=${LAT}&lng=${LNG}&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING`;
+
+const TOPRESTAURENT_API = `/api/swiggy/dapi/restaurants/list/v5?lat=${LAT}&lng=${LNG}&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING`;
 
 export {
 	cuisineImageUrl,
@@ -22,4 +23,6 @@ export {
 	MENU_API,
 	INITIAL_RESTAURANT_API,
 	MORE_RESTAURANT_API,
+	CUISINE_API,
+	TOPRESTAURENT_API,
 };

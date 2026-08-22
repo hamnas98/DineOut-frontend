@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import RestaurantCardSkeleton from "../common/RestaurantCardSkeleton";
 import SortDropdown from "./SortDropdown";
@@ -6,15 +6,12 @@ import FilterSidebar from "./FilterSidebar";
 import FilterBadge from "./FilterBadge";
 import TopRestaurantCard from "./TopRestaurantCard";
 import useInfiniteScroll from "../../hooks/useInfiniteScroll";
-import {
-	INITIAL_RESTAURANT_API,
-	MORE_RESTAURANT_API,
-} from "../../utils/constants";
+import useRestaurantList from "../../hooks/useRestaurentList";
 
 const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
-	const [restaurantList, setRestaurantList] = useState([]);
-	const [loadingRestaurants, setLoadingRestaurants] = useState(true);
-	const [loadingMore, setLoadingMore] = useState(false);
+	const { restaurantList, fetchMore, hasMore, loading, loadingMore } =
+		useRestaurantList();
+
 	const [sortBy, setSortBy] = useState("relevance");
 	const [filters, setFilters] = useState({
 		cuisines: [],
@@ -22,161 +19,16 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 		maxDeliveryTime: 999,
 	});
 
-	const [pageOffset, setPageOffset] = useState(null);
-	const [csrfToken, setCsrfToken] = useState(null);
-	const [hasMore, setHasMore] = useState(true);
-	const [totalFetched, setTotalFetched] = useState(0);
+	// ✅ FIXED: was calling a nonexistent "fetchMoreRestaurants"
+	const lastRestaurantRef = useInfiniteScroll(fetchMore, hasMore, loadingMore);
 
-	const LAT = "12.946220755410387";
-	const LNG = "77.67176236957312";
-
-	const parseRestaurantData = (restaurants) => {
-		return restaurants.map((r) => {
-			const loyaltyDiscoverPresentationInfo =
-				r.info.loyaltyDiscoverPresentationInfo;
-
-			let offerText = null;
-			if (r.info.aggregatedDiscountInfoV3) {
-				const discountInfo = r.info.aggregatedDiscountInfoV3;
-				offerText = [discountInfo.header, discountInfo.subHeader]
-					.filter(Boolean)
-					.join(" ");
-			}
-
-			return {
-				id: r.info.id,
-				name: r.info.name,
-				imageId: r.info.cloudinaryImageId,
-				cuisines: r.info.cuisines.join(", "),
-				cuisineArray: r.info.cuisines,
-				rating: r.info.avgRating,
-				costForTwo: r.info.costForTwo,
-				deliveryTime: r.info.sla?.slaString,
-				deliveryMinutes: r.info.sla?.deliveryTime,
-				distance: r.info.sla?.lastMileTravelString,
-				area: r.info.areaName,
-				isOpen: r.info.isOpen,
-				discount:
-					loyaltyDiscoverPresentationInfo?.freedelMessage ||
-					"Free Delivery",
-				offer: offerText,
-				link: r.cta?.link,
-			};
-		});
-	};
-
+	// ✅ Notify parent whenever the list changes (used for search suggestions elsewhere)
 	useEffect(() => {
-		const fetchInitialRestaurants = async () => {
-			try {
-				const jsonResponse = await fetch(
-					// ✅ CHANGED: use proxy path instead of full swiggy.com URL
-					INITIAL_RESTAURANT_API,
-				).then((res) => res.json());
-				const cards = jsonResponse?.data?.cards || [];
-				const restaurantCard = cards.find(
-					(c) => c?.card?.card?.id === "restaurant_grid_listing_v2",
-				);
-				const restaurants =
-					restaurantCard?.card?.card?.gridElements?.infoWithStyle
-						?.restaurants || [];
-				const restaurantCardList = parseRestaurantData(restaurants);
-				const pageOffsetData = jsonResponse?.data?.pageOffset;
-				const csrf = jsonResponse?.csrfToken;
-				setRestaurantList(restaurantCardList);
-				setPageOffset(pageOffsetData);
-				setCsrfToken(csrf);
-				setTotalFetched(restaurantCardList.length);
-				setLoadingRestaurants(false);
-				setHasMore(!!pageOffsetData?.nextOffset);
-				if (onRestaurantsLoaded) {
-					onRestaurantsLoaded(restaurantCardList);
-				}
-
-				console.log("📦 Initial load:", {
-					count: restaurantCardList.length,
-					hasNextPage: !!pageOffsetData?.nextOffset,
-				});
-			} catch (error) {
-				console.error("Error fetching restaurants:", error);
-				setLoadingRestaurants(false);
-				setHasMore(false);
-			}
-		};
-
-		fetchInitialRestaurants();
-	}, []);
-
-	const fetchMoreRestaurants = useCallback(async () => {
-		if (!hasMore || loadingMore || !pageOffset?.nextOffset) {
-			return;
+		if (!loading && onRestaurantsLoaded) {
+			onRestaurantsLoaded(restaurantList);
 		}
-		setLoadingMore(true);
-		console.log("📥 Loading more restaurants...");
-		try {
-			const response = await fetch(MORE_RESTAURANT_API, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					lat: parseFloat(LAT),
-					lng: parseFloat(LNG),
-					nextOffset: pageOffset.nextOffset,
-					widgetOffset: pageOffset.widgetOffset || {},
-					filters: {},
-					seoParams: {
-						seoUrl: "https://www.swiggy.com/",
-						pageType: "FOOD_HOMEPAGE",
-						apiName: "FoodHomePage",
-					},
-					page_type: "DESKTOP_WEB_LISTING",
-					_csrf: csrfToken || "",
-				}),
-			});
-			const jsonResponse = await response.json();
-			const cards = jsonResponse?.data?.cards || [];
-			const restaurantCard = cards.find(
-				(c) => c?.card?.card?.id === "restaurant_grid_listing",
-			);
-			const newRestaurants =
-				restaurantCard?.card?.card?.gridElements?.infoWithStyle
-					?.restaurants || [];
-			const newRestaurantCardList = parseRestaurantData(newRestaurants);
-			const updatedList = [...restaurantList, ...newRestaurantCardList];
-			setRestaurantList(updatedList);
-			setTotalFetched(updatedList.length);
-			const newPageOffset = jsonResponse?.data?.pageOffset;
-			setPageOffset(newPageOffset);
-			setHasMore(!!newPageOffset?.nextOffset);
-
-			if (onRestaurantsLoaded) {
-				onRestaurantsLoaded(updatedList);
-			}
-
-			console.log("✅ Loaded more:", {
-				newCount: newRestaurantCardList.length,
-				totalCount: updatedList.length,
-				hasMore: !!newPageOffset?.nextOffset,
-			});
-		} catch (error) {
-			console.error("Error loading more restaurants:", error);
-			setHasMore(false);
-		} finally {
-			setLoadingMore(false);
-		}
-	}, [
-		hasMore,
-		loadingMore,
-		pageOffset,
-		csrfToken,
-		restaurantList,
-		onRestaurantsLoaded,
-	]);
-	const lastRestaurantRef = useInfiniteScroll(
-		fetchMoreRestaurants,
-		hasMore,
-		loadingMore,
-	);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [restaurantList, loading]);
 
 	// Apply search filter
 	const searchedRestaurants = useMemo(() => {
@@ -285,15 +137,17 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 							? `Search results for "${searchQuery}"`
 							: "Restaurants with online food delivery in Bangalore"}
 					</h2>
-					{!loadingRestaurants && (
+					{/* ✅ FIXED: was "loadingRestaurants" */}
+					{!loading && (
 						<p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-							{totalFetched} restaurants loaded
+							{/* ✅ FIXED: was "totalFetched" (unused/unsynced state) */}
+							{restaurantList.length} restaurants loaded
 							{hasMore && " • Scroll for more"}
 						</p>
 					)}
 				</div>
 
-				{!loadingRestaurants && restaurantList.length > 0 && (
+				{!loading && restaurantList.length > 0 && (
 					<div className="flex items-center gap-3">
 						<FilterSidebar
 							filters={filters}
@@ -307,7 +161,7 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 			</div>
 
 			{/* Active Search/Filter Badges */}
-			{!loadingRestaurants && (isSearchActive || activeFiltersCount > 0) && (
+			{!loading && (isSearchActive || activeFiltersCount > 0) && (
 				<div className="flex flex-wrap items-center gap-2 px-4 pb-4">
 					<span className="text-sm text-slate-600 dark:text-slate-400">
 						{isSearchActive ? "Searching:" : "Active filters:"}
@@ -348,9 +202,10 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 				</div>
 			)}
 
-			{/* Restaurant Grid - CHANGED FROM HORIZONTAL TO VERTICAL */}
+			{/* Restaurant Grid */}
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4">
-				{loadingRestaurants ? (
+				{/* ✅ FIXED: was "loadingRestaurants" */}
+				{loading ? (
 					[...Array(8)].map((_, index) => (
 						<RestaurantCardSkeleton key={index} />
 					))
@@ -401,10 +256,11 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 			</div>
 
 			{/* End of List Message */}
-			{!hasMore && !loadingRestaurants && sortedRestaurants.length > 0 && (
+			{/* ✅ FIXED: was "loadingRestaurants" and "totalFetched" */}
+			{!hasMore && !loading && sortedRestaurants.length > 0 && (
 				<div className="text-center py-8">
 					<p className="text-slate-600 dark:text-slate-400 text-sm">
-						You've reached the end • {totalFetched} restaurants loaded
+						Showing {restaurantList.length} restaurants near you
 					</p>
 				</div>
 			)}
