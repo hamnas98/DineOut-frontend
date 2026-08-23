@@ -2,6 +2,8 @@
 import { useState, useEffect, useCallback } from "react";
 import {
 	INITIAL_RESTAURANT_API,
+	LAT,
+	LNG,
 	MORE_RESTAURANT_API,
 } from "../utils/constants";
 
