@@ -7,10 +7,12 @@ import FilterBadge from "./FilterBadge";
 import TopRestaurantCard from "./TopRestaurantCard";
 import useInfiniteScroll from "../../hooks/useInfiniteScroll";
 import useRestaurantList from "../../hooks/useRestaurentList";
+import searchRestaurents from "../../utils/searchRestaurents";
 
 const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 	const { restaurantList, fetchMore, hasMore, loading, loadingMore } =
 		useRestaurantList();
+
 
 	const [sortBy, setSortBy] = useState("relevance");
 	const [filters, setFilters] = useState({
@@ -19,35 +21,18 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 		maxDeliveryTime: 999,
 	});
 
-	// ✅ FIXED: was calling a nonexistent "fetchMoreRestaurants"
 	const lastRestaurantRef = useInfiniteScroll(fetchMore, hasMore, loadingMore);
 
-	// ✅ Notify parent whenever the list changes (used for search suggestions elsewhere)
 	useEffect(() => {
 		if (!loading && onRestaurantsLoaded) {
 			onRestaurantsLoaded(restaurantList);
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [restaurantList, loading]);
 
-	// Apply search filter
 	const searchedRestaurants = useMemo(() => {
-		if (!searchQuery.trim()) {
-			return restaurantList;
-		}
-		const query = searchQuery.toLowerCase().trim();
-
-		return restaurantList.filter((restaurant) => {
-			const nameMatch = restaurant.name.toLowerCase().includes(query);
-			const cuisineMatch = restaurant.cuisines
-				?.toLowerCase()
-				.includes(query);
-			const areaMatch = restaurant.area?.toLowerCase().includes(query);
-			return nameMatch || cuisineMatch || areaMatch;
-		});
+		return searchRestaurents(restaurantList, searchQuery);
 	}, [restaurantList, searchQuery]);
 
-	// Get unique cuisines
 	const availableCuisines = useMemo(() => {
 		const cuisineSet = new Set();
 		restaurantList.forEach((restaurant) => {
@@ -137,7 +122,6 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 							? `Search results for "${searchQuery}"`
 							: "Restaurants with online food delivery in Bangalore"}
 					</h2>
-					{/* ✅ FIXED: was "loadingRestaurants" */}
 					{!loading && (
 						<p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
 							{/* ✅ FIXED: was "totalFetched" (unused/unsynced state) */}
@@ -204,7 +188,6 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 
 			{/* Restaurant Grid */}
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4">
-				{/* ✅ FIXED: was "loadingRestaurants" */}
 				{loading ? (
 					[...Array(8)].map((_, index) => (
 						<RestaurantCardSkeleton key={index} />
@@ -248,15 +231,12 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 					</div>
 				)}
 
-				{/* Loading More Indicator */}
 				{loadingMore &&
 					[...Array(4)].map((_, index) => (
 						<RestaurantCardSkeleton key={`loading-${index}`} />
 					))}
 			</div>
 
-			{/* End of List Message */}
-			{/* ✅ FIXED: was "loadingRestaurants" and "totalFetched" */}
 			{!hasMore && !loading && sortedRestaurants.length > 0 && (
 				<div className="text-center py-8">
 					<p className="text-slate-600 dark:text-slate-400 text-sm">
@@ -265,7 +245,6 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 				</div>
 			)}
 
-			{/* Bottom Border */}
 			<div className="mt-8 border-t border-slate-200 dark:border-slate-700" />
 		</div>
 	);

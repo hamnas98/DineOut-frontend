@@ -110,7 +110,6 @@ function useRestaurantList() {
 			const text = await response.text();
 
 			if (!text) {
-				// Swiggy WAF blocks this endpoint from browser fetches — expected, not an error
 				setHasMore(false);
 				return;
 			}
