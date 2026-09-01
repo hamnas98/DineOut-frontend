@@ -8,43 +8,38 @@ import {
 } from "../utils/constants";
 
 const parseRestaurantData = (restaurants) => {
-	return restaurants.map((r) => {
-		const loyaltyDiscoverPresentationInfo =
-			r.info.loyaltyDiscoverPresentationInfo;
-		let offerText = null;
-		if (r.info.aggregatedDiscountInfoV3) {
-			const discountInfo = r.info.aggregatedDiscountInfoV3;
-			offerText = [discountInfo.header, discountInfo.subHeader]
-				.filter(Boolean)
-				.join(" ");
-		}
+  return restaurants.map((r, index) => {
+    const loyaltyDiscoverPresentationInfo = r.info.loyaltyDiscoverPresentationInfo;
+    let offerText = null;
+    if (r.info.aggregatedDiscountInfoV3) {
+      const discountInfo = r.info.aggregatedDiscountInfoV3;
+      offerText = [discountInfo.header, discountInfo.subHeader]
+        .filter(Boolean)
+        .join(" ");
+    }
 
-		return {
-			id: r.info.id,
-			name: r.info.name,
-			imageId: r.info.cloudinaryImageId,
-			cuisines: r.info.cuisines.join(", "),
-			cuisineArray: r.info.cuisines,
-			rating: r.info.avgRating,
-			costForTwo: r.info.costForTwo,
-			deliveryTime: r.info.sla?.slaString,
-			deliveryMinutes: r.info.sla?.deliveryTime,
-			distance: r.info.sla?.lastMileTravelString,
-			area: r.info.areaName,
-			isOpen: r.info.isOpen,
-			discount:
-				loyaltyDiscoverPresentationInfo?.freedelMessage || "Free Delivery",
-			offer: offerText,
-			link: r.cta?.link,
-		};
-	});
+    return {
+      id: r.info.id,
+      name: r.info.name,
+      imageId: r.info.cloudinaryImageId,
+      cuisines: r.info.cuisines.join(", "),
+      cuisineArray: r.info.cuisines,
+      rating: r.info.avgRating,
+      costForTwo: r.info.costForTwo,
+      deliveryTime: r.info.sla?.slaString,
+      deliveryMinutes: r.info.sla?.deliveryTime,
+      distance: r.info.sla?.lastMileTravelString,
+      area: r.info.areaName,
+      isOpen: r.info.isOpen,
+      discount: loyaltyDiscoverPresentationInfo?.freedelMessage || "Free Delivery",
+      offer: offerText,
+      link: r.cta?.link,
+      promoted: index % 3 === 0,
+    };
+  });
 };
 
-/**
- * Fetches the initial restaurant list + exposes a fetchMore()
- * for pagination (which currently always ends after page 1 —
- * see notes on Swiggy's WAF blocking /list/update).
- */
+
 function useRestaurantList() {
 	const [restaurantList, setRestaurantList] = useState([]);
 	const [loading, setLoading] = useState(true);

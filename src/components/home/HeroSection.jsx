@@ -13,7 +13,7 @@ function HeroSection({ onSearch, restaurants = [] }) {
 	const navigate = useNavigate();
 	const { history, saveSearch, clearHistory, removeFromHistory } =
 		useSearchHistory();
-
+		console.log(searchQuery,'search')
 	useEffect(() => {
 		onSearch(debouncedQuery);
 	}, [debouncedQuery, onSearch]);

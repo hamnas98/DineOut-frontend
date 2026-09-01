@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 
+import withPromotedLabel from "../../hoc/withPromotedLabel";
+
 const TopRestaurantCard = ({ restaurant }) => {
 	const {
 		id,
@@ -18,7 +20,7 @@ const TopRestaurantCard = ({ restaurant }) => {
 		<Link to={`/restaurant/${id}`}>
 			<div className="flex h-full flex-1 flex-col gap-4 rounded-xl bg-white dark:bg-slate-800/50 shadow-sm hover:shadow-xl transition-shadow duration-300 min-w-64 transform hover:-translate-y-1">
 				{/* Chain Card */}
-				<div className="relative rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02] ">
+				<div className="max-w-90 relative rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02] ">
 					{/* Image */}
 					<div
 						className="w-full h-44 bg-cover bg-center relative"
@@ -92,4 +94,6 @@ const TopRestaurantCard = ({ restaurant }) => {
 	);
 };
 
-export default TopRestaurantCard;
+const PromotedTopRestaurantCard = withPromotedLabel(TopRestaurantCard);
+
+export default PromotedTopRestaurantCard;

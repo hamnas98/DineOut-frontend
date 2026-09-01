@@ -8,11 +8,11 @@ import TopRestaurantCard from "./TopRestaurantCard";
 import useInfiniteScroll from "../../hooks/useInfiniteScroll";
 import useRestaurantList from "../../hooks/useRestaurentList";
 import searchRestaurents from "../../utils/searchRestaurents";
+import PromotedTopRestaurantCard from "./TopRestaurantCard";
 
 const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 	const { restaurantList, fetchMore, hasMore, loading, loadingMore } =
 		useRestaurantList();
-
 
 	const [sortBy, setSortBy] = useState("relevance");
 	const [filters, setFilters] = useState({
@@ -201,7 +201,7 @@ const RestaurantGrid = ({ searchQuery = "", onRestaurantsLoaded }) => {
 								key={restaurant.id}
 								ref={isLast ? lastRestaurantRef : null}
 							>
-								<TopRestaurantCard restaurant={restaurant} />
+								<PromotedTopRestaurantCard restaurant={restaurant} />
 							</div>
 						);
 					})
