@@ -13,7 +13,7 @@ const RestaurantCard = ({ restaurant }) => {
 	} = restaurant;
 
 	const handleOrderNow = () => {
-		console.log("Order from:", name);
+		
 		// TODO: Navigate to restaurant detail page
 	};
 

@@ -53,7 +53,6 @@ function useSearchHistory() {
   const removeFromHistory = (query) => {
     const newHistory = history.filter(item => item !== query)
     setHistory(newHistory)
-    console.log('h',history)
     
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory))

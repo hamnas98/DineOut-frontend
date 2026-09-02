@@ -1,6 +1,6 @@
 function CuisineCard({ cuisine }) {
   const handleClick = () => {
-    console.log('Filter by:', cuisine.name)
+  
   }
 
   const {name, imageId, link} = cuisine
