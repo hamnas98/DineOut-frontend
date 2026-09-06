@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-	items: [],
+	items: [], // { id, name, price, quantity, imageId, restaurantId, restaurantName, isVeg }
 };
 
 const cartSlice = createSlice({
@@ -9,15 +9,16 @@ const cartSlice = createSlice({
 	initialState,
 	reducers: {
 		addItem: (state, action) => {
+			console.log(state, action);
 			const newItem = action.payload;
-			const existingItem = state.items.find((item) => {
-				item.id === newItem.id;
-			});
-
+			console.log(newItem);
+			const existingItem = state.items.find(
+				(item) => item.id === newItem.id,
+			);
 			if (existingItem) {
 				existingItem.quantity += 1;
 			} else {
-				state.item.push({ ...newItem, quantity: 1 });
+				state.items.push({ ...newItem, quantity: 1 });
 			}
 		},
 		removeItem: (state, action) => {

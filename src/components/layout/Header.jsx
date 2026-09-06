@@ -3,10 +3,12 @@ import UserMenu from "../auth/UserMenu";
 import useAuth from "../../hooks/useAuth";
 import { Link, NavLink } from "react-router-dom";
 import AuthModal from "../auth/AuthModal";
+import useCart from "../../hooks/useCart";
 
 function Header() {
 	const { isAuthenticated } = useAuth();
 	const [showAuthModal, setShowAuthModal] = useState(false);
+	const { totalItems } = useCart();
 
 	return (
 		<>
@@ -125,7 +127,7 @@ function Header() {
 						</span>
 						<span className="hidden sm:inline">Cart</span>
 						<span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold size-4 flex items-center justify-center rounded-full">
-							0
+							{totalItems}
 						</span>
 					</NavLink>
 				</nav>
