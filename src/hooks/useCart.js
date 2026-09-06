@@ -15,11 +15,20 @@ function useCart() {
 		const item = items.find((i) => i.id === itemId);
 		return item ? item.quantity : 0;
 	};
+	const cartRestaurantId = items.length > 0 ? items[0].restaurantId : null;
+	const cartRestaurantName = items.length > 0 ? items[0].restaurantName : null;
+
+	const isDifferentRestaurant = (restaurantId) => {
+		return cartRestaurantId !== null && cartRestaurantId !== restaurantId;
+	};
 
 	return {
 		items,
 		totalItems,
 		totalPrice,
+		cartRestaurantId,
+		cartRestaurantName,
+		isDifferentRestaurant,
 		getItemQuantity,
 		addItem: (item) => dispatch(addItem(item)),
 		removeItem: (itemId) => dispatch(removeItem(itemId)),
