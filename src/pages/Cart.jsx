@@ -1,8 +1,10 @@
-
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 import useCart from "../hooks/useCart";
 
 const Cart = () => {
+	const { isAuthenticated } = useAuth();
+	const navigate = useNavigate();
 	const {
 		items,
 		totalItems,
@@ -12,6 +14,13 @@ const Cart = () => {
 		deleteItem,
 		clearCart,
 	} = useCart();
+
+	function handleCheckout() {
+		if (!isAuthenticated) {
+			return alert("please Login to proceed to Checkout");
+		}
+		navigate("/checkout");
+	}
 
 	if (items.length === 0) {
 		return (
@@ -143,7 +152,10 @@ const Cart = () => {
 				</div>
 			</div>
 
-			<button className="w-full mt-4 py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-colors">
+			<button
+				onClick={handleCheckout}
+				className="w-full mt-4 py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-colors"
+			>
 				Proceed to Checkout
 			</button>
 		</div>

@@ -9,6 +9,7 @@ import ErrorBoundary from "./components/common/ErrorBoundary";
 // Public Pages
 import Home from "./pages/Home";
 import RouteLoader from "./components/common/RouteLoader";
+import OrderConfirmation from "./pages/OrderConfirmation";
 
 const Help = lazy(() => import("./pages/Help"));
 const Offers = lazy(() => import("./pages/Offers"));
@@ -25,6 +26,7 @@ const Favourites = lazy(() => import("./pages/Favourites"));
 const Addresses = lazy(() => import("./pages/Addresses"));
 const Payments = lazy(() => import("./pages/Payments"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Checkout = lazy(() => import("./pages/Checkout"));
 
 const App = () => {
 	return (
@@ -55,6 +57,22 @@ const App = () => {
 									element={
 										<ProtectedRoute>
 											<Cart />
+										</ProtectedRoute>
+									}
+								/>
+								<Route
+									path="/checkout"
+									element={
+										<ProtectedRoute>
+											<Checkout />
+										</ProtectedRoute>
+									}
+								/>
+								<Route
+									path="/order-confirmation/:orderId"
+									element={
+										<ProtectedRoute>
+											<OrderConfirmation />
 										</ProtectedRoute>
 									}
 								/>
