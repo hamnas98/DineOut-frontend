@@ -1,7 +1,19 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const CART_STORAGE_KEY = "dineout_cart";
+
+const loadCartFromStorage = () => {
+	try {
+		const stored = localStorage.getItem(CART_STORAGE_KEY);
+		return stored ? JSON.parse(stored) : [];
+	} catch (error) {
+		console.error("Failed to load cart from local storage", error);
+		return [];
+	}
+};
+
 const initialState = {
-	items: [], // { id, name, price, quantity, imageId, restaurantId, restaurantName, isVeg }
+	items: loadCartFromStorage(),
 };
 
 const cartSlice = createSlice({
@@ -45,3 +57,5 @@ const cartSlice = createSlice({
 export const { addItem, removeItem, deleteItem, clearCart } = cartSlice.actions;
 
 export default cartSlice.reducer;
+
+export { CART_STORAGE_KEY };

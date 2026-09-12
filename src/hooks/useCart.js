@@ -6,6 +6,7 @@ function useCart() {
 	const items = useSelector((state) => state.cart.items);
 
 	const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+	
 	const totalPrice = items.reduce(
 		(sum, item) => sum + item.price * item.quantity,
 		0,
@@ -26,7 +27,6 @@ function useCart() {
 		items,
 		totalItems,
 		totalPrice,
-		cartRestaurantId,
 		cartRestaurantName,
 		isDifferentRestaurant,
 		getItemQuantity,
