@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import { getAvatarUrl } from "../../utils/avatar";
 
 const ProfileSidebar = () => {
 	const { user } = useAuth();
+	const avatarUrl = getAvatarUrl(user?.name);
 
 	const navItems = [
 		{ path: "/my-account", label: "Overview", icon: "dashboard", end: true },
@@ -21,15 +22,15 @@ const ProfileSidebar = () => {
 	return (
 		<aside className="w-full">
 			{/* User Info Card */}
-			<div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4 sm:p-6 mb-4">
-				<div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+			<div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-2 sm:p-4 lg:p-6 mb-4">
+				<div className="flex flex-col items-center sm:flex-row sm:items-start gap-2 sm:gap-4">
 					<div
-						className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-cover bg-center border-2 border-primary/30 flex-shrink-0"
-						style={{ backgroundImage: `url("${user?.avatar}")` }}
+						className="w-10 h-10 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-cover bg-center border-2 border-primary/30 flex-shrink-0"
+						style={{ backgroundImage: `url("${avatarUrl}")` }}
 						role="img"
 						aria-label={user?.name}
 					/>
-					<div className="flex-1 min-w-0 text-center sm:text-left">
+					<div className="hidden sm:block flex-1 min-w-0 text-center sm:text-left">
 						<h2 className="font-bold text-lg text-slate-900 dark:text-white truncate">
 							{user?.name}
 						</h2>
@@ -50,11 +51,12 @@ const ProfileSidebar = () => {
 						key={item.path}
 						to={item.path}
 						end={item.end}
+						title={item.label}
 						className={({ isActive }) =>
-							`flex items-center gap-3 px-4 py-3 transition-colors relative ${
+							`flex items-center justify-center sm:justify-start gap-0 sm:gap-3 px-2 sm:px-4 py-3 transition-colors relative ${
 								isActive
-									? "bg-primary/10 text-primary font-medium"
-									: "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+									? "bg-primary/15 dark:bg-primary/25 text-primary dark:text-white font-semibold"
+									: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
 							}`
 						}
 					>
@@ -63,10 +65,14 @@ const ProfileSidebar = () => {
 								{isActive && (
 									<div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
 								)}
-								<span className="material-symbols-outlined text-xl">
+								<span
+									className={`material-symbols-outlined text-xl ${
+										isActive ? "text-primary dark:text-white" : ""
+									}`}
+								>
 									{item.icon}
 								</span>
-								<span className="text-sm sm:text-base">
+								<span className="hidden sm:inline text-sm sm:text-base">
 									{item.label}
 								</span>
 							</>
@@ -77,4 +83,5 @@ const ProfileSidebar = () => {
 		</aside>
 	);
 };
+
 export default ProfileSidebar;
