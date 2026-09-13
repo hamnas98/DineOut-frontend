@@ -1,53 +1,43 @@
 import React, { useState } from "react";
 import useCart from "../hooks/useCart";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import useOrders from "../hooks/useOrders";
 import useAuth from "../hooks/useAuth";
-
-const ADDRESSES = [
-	{
-		id: "home",
-		label: "Home",
-		details: "221B, HSR Layout, Bengaluru, Karnataka",
-	},
-	{
-		id: "work",
-		label: "Work",
-		details: "4th Floor, Outer Ring Road, Bellandur, Bengaluru",
-	},
-];
-
-const PAYMENT_METHODS = [
-	{ id: "cod", label: "Cash on Delivery", icon: "payments" },
-	{ id: "upi", label: "UPI", icon: "qr_code_2" },
-	{ id: "card", label: "Credit / Debit Card", icon: "credit_card" },
-];
+import useAddresses from "../hooks/useAddresses";
+import usePayments from "../hooks/usePayments";
 
 const DELIVERY_FEE = 40;
 
 const Checkout = () => {
 	const navigate = useNavigate();
 	const { user } = useAuth();
+	const { addresses } = useAddresses();
+	const { paymentMethods } = usePayments();
+
 	const { items, totalItems, totalPrice, cartRestaurantName, clearCart } =
 		useCart();
 	const { placeOrder } = useOrders();
 
-	const [selectedAddressId, setSelectedAddressId] = useState(ADDRESSES[0].id);
+	const [selectedAddressId, setSelectedAddressId] = useState(
+		addresses[0]?.id || null,
+	);
 	const [selectedPaymentId, setSelectedPaymentId] = useState(
-		PAYMENT_METHODS[0].id,
+		paymentMethods[0]?.id || null,
 	);
 	const [placing, setPlacing] = useState(false);
 
-	const selectedAddress = ADDRESSES.find((a) => a.id === selectedAddressId);
-	const selectedPayment = PAYMENT_METHODS.find(
+	const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
+	const selectedPayment = paymentMethods.find(
 		(p) => p.id === selectedPaymentId,
 	);
 	const grandTotal = totalPrice + DELIVERY_FEE;
 
 	function handlePlaceOrder() {
+		if(!selectedAddress || !selectedPayment ) {
+			return alert("please add ")
+		}
 		setPlacing(true);
 		setTimeout(() => {
-            
 			const order = placeOrder({
 				restaurentNmae: cartRestaurantName,
 				itemCount: totalItems,
@@ -79,7 +69,15 @@ const Checkout = () => {
 					Delivery Address
 				</h2>
 				<div className="space-y-3">
-					{ADDRESSES.map((address) => (
+					{addresses.length === 0 && (
+						<p className="text-sm text-red-600 dark:text-red-400 mb-4">
+							You need to add an address before placing an order.{" "}
+							<Link to="/my-account/addresses" className="underline">
+								Add one
+							</Link>
+						</p>
+					)}
+					{addresses.map((address) => (
 						<label
 							key={address.id}
 							className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -114,7 +112,15 @@ const Checkout = () => {
 					Payment Method
 				</h2>
 				<div className="space-y-3">
-					{PAYMENT_METHODS.map((method) => (
+					{paymentMethods.length === 0 && (
+						<p className="text-sm text-red-600 dark:text-red-400 mb-4">
+							You need to add an payment before placing an order.{" "}
+							<Link to="/my-account/payments" className="underline">
+								Add one
+							</Link>
+						</p>
+					)}
+					{paymentMethods.map((method) => (
 						<label
 							key={method.id}
 							className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${

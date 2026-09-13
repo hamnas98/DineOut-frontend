@@ -1,10 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const ORDER_STORAGE_KEY = "dineout_orders";
+const ORDERS_STORAGE_KEY = "dineout_orders";
 
 const laodOrdersFromStorage = () => {
 	try {
-		const stored = localStorage.getItem(ORDER_STORAGE_KEY);
+		const stored = localStorage.getItem(ORDERS_STORAGE_KEY);
 		return stored ? JSON.parse(stored) : [];
 	} catch (error) {
 		console.error("Failed to load orders from local storage", error);
@@ -30,4 +30,4 @@ export const { addOrder } = ordersSlice.actions;
 
 export default ordersSlice.reducer;
 
-export { ORDER_STORAGE_KEY };
+export { ORDERS_STORAGE_KEY };

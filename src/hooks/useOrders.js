@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from "react-redux";
-import { addOrder } from "../store/orderSlice";
+import { addOrder } from "../store/ordersSlice";
 
 function useOrders() {
 	const dispatch = useDispatch();

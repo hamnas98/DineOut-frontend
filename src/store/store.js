@@ -1,43 +1,43 @@
 import { configureStore } from "@reduxjs/toolkit";
 import cartReducer, { CART_STORAGE_KEY } from "../store/cartSlice";
-import ordersReducer, { ORDER_STORAGE_KEY } from "./orderSlice";
+import ordersReducer, { ORDERS_STORAGE_KEY } from "./ordersSlice";
+import favouritesReducer, { FAVOURITES_STORAGE_KEY } from "./favouritesSlice";
+import addressesReducer, { ADDRESSES_STORAGE_KEY } from "./addressesSlice";
+import paymentsReducer, { PAYMENTS_STORAGE_KEY } from "./paymentsSlice";
 
 const store = configureStore({
 	reducer: {
 		cart: cartReducer,
 		orders: ordersReducer,
+		favourites: favouritesReducer,
+		addresses: addressesReducer,
+		payments: paymentsReducer,
 	},
 });
 
-let previousCartItems = store.getState().cart.items;
-let previousOrdersList = store.getState().orders.list;
+const persistMap = [
+	{ key: CART_STORAGE_KEY, select: (s) => s.cart.items },
+	{ key: ORDERS_STORAGE_KEY, select: (s) => s.orders.list },
+	{ key: FAVOURITES_STORAGE_KEY, select: (s) => s.favourites.list },
+	{ key: ADDRESSES_STORAGE_KEY, select: (s) => s.addresses.list },
+	{ key: PAYMENTS_STORAGE_KEY, select: (s) => s.payments.list },
+];
+
+let previousValues = persistMap.map((p) => p.select(store.getState()));
 
 store.subscribe(() => {
 	const state = store.getState();
-
-	if (state.cart.items !== previousCartItems) {
-		previousCartItems = state.cart.items;
-		try {
-			localStorage.setItem(
-				CART_STORAGE_KEY,
-				JSON.stringify(state.cart.items),
-			);
-		} catch (error) {
-			console.error("Failed to save cart to loacal storage", error);
+	persistMap.forEach((p, i) => {
+		const current = p.select(state);
+		if (current !== previousValues[i]) {
+			previousValues[i] = current;
+			try {
+				localStorage.setItem(p.key, JSON.stringify(current));
+			} catch (err) {
+				console.error(`Failed to save ${p.key}:`, err);
+			}
 		}
-	}
-
-	if (state.orders.list !== previousOrdersList) {
-		previousOrdersList = state.orders.list;
-		try {
-			localStorage.setItem(
-				ORDER_STORAGE_KEY,
-				JSON.stringify(state.orders.list),
-			);
-		} catch (error) {
-			console.error("Failed to save oreders to locatl storage", error);
-		}
-	}
+	});
 });
 
 export default store;
