@@ -35,8 +35,6 @@ const Checkout = () => {
 	);
 	const [placing, setPlacing] = useState(false);
 
-	// ✅ FIXED: "items.lenght" typo — must come AFTER hooks (rules of hooks),
-	// but BEFORE the JSX return, since hooks can't be called conditionally.
 	if (items.length === 0) {
 		return <Navigate to="/cart" replace />;
 	}
@@ -59,16 +57,14 @@ const Checkout = () => {
 	};
 
 	const handlePlaceOrder = () => {
-		if (!canPlaceOrder) return; // button is disabled anyway, this is just a safety net
+		if (!canPlaceOrder) return;
 
 		setPlacing(true);
 		setTimeout(() => {
 			const order = placeOrder({
-				// ✅ FIXED: "restaurentNmae" → "restaurantName"
 				restaurantName: cartRestaurantName,
 				items,
 				itemCount: totalItems,
-				// ✅ FIXED: "subtoatl" → "subtotal"
 				subtotal: totalPrice,
 				deliveryFee: DELIVERY_FEE,
 				total: grandTotal,
@@ -144,11 +140,10 @@ const Checkout = () => {
 								</label>
 							))}
 						</div>
-						{/* ✅ FIXED: text-white → text-primary (was invisible on white card in light mode) */}
 						<button
 							type="button"
 							onClick={() => setShowAddressForm(true)}
-							className="text-sm font-medium text-primary hover:underline"
+							className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
 						>
 							+ Add another address
 						</button>
@@ -201,8 +196,6 @@ const Checkout = () => {
 										onChange={() => setSelectedPaymentId(method.id)}
 										className="accent-primary"
 									/>
-									{/* ✅ FIXED: "method.icon" doesn't exist on your payment objects — 
-                      use the PAYMENT_ICONS lookup based on method.type instead */}
 									<span className="material-symbols-outlined text-slate-600 dark:text-slate-400">
 										{PAYMENT_ICONS[method.type] || "payments"}
 									</span>
@@ -215,7 +208,7 @@ const Checkout = () => {
 						<button
 							type="button"
 							onClick={() => setShowPaymentForm(true)}
-							className="text-sm font-medium text-primary hover:underline"
+							className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
 						>
 							+ Add another method
 						</button>
@@ -250,7 +243,6 @@ const Checkout = () => {
 				</div>
 			</section>
 
-			{/* ✅ Specific, dynamic warning instead of a generic alert() */}
 			{!canPlaceOrder && (
 				<div className="flex items-center gap-2 justify-center text-sm text-orange-600 dark:text-orange-400 mb-3 bg-orange-50 dark:bg-orange-900/20 py-2.5 px-4 rounded-lg">
 					<span className="material-symbols-outlined text-lg">info</span>
